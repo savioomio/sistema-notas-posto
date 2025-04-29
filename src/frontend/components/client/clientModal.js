@@ -1,8 +1,6 @@
 // src/frontend/components/client/clientModal.js
 const clientForm = require('./clientForm');
 const clientService = require('../../services/clientService');
-const { loadClients } = require('../../pages/clients');
-const { loadDashboard } = require('../../pages/dashboard');
 
 // Abrir modal de cliente
 async function openClientModal(clientId = null) {
@@ -73,12 +71,38 @@ async function saveClient(event) {
     closeClientModal();
 
     // Recarregar dados
-    await loadClients();
+    try {
+      // Carregar clientes
+      if (typeof window.loadClients === 'function') {
+        await window.loadClients();
+      } else {
+        // Tentar importar dinamicamente para evitar dependência circular
+        const clients = require('../../pages/clients');
+        if (typeof clients.loadClients === 'function') {
+          await clients.loadClients();
+        }
+      }
 
-    // Recarregar dashboard se estiver visível
-    if (document.getElementById('dashboard').classList.contains('active')) {
-      await loadDashboard();
+      // Recarregar dashboard se estiver visível
+      if (document.getElementById('dashboard').classList.contains('active')) {
+        try {
+          if (typeof window.loadDashboard === 'function') {
+            await window.loadDashboard();
+          } else {
+            // Tentar importar dinamicamente
+            const dashboard = require('../../pages/dashboard');
+            if (typeof dashboard.loadDashboard === 'function') {
+              await dashboard.loadDashboard();
+            }
+          }
+        } catch (error) {
+          console.log('O dashboard não foi atualizado, mas o cliente foi salvo.', error);
+        }
+      }
+    } catch (error) {
+      console.log('A lista de clientes não foi atualizada, mas o cliente foi salvo.', error);
     }
+
 
     // Mostrar mensagem de sucesso
     alert('Cliente salvo com sucesso!');
@@ -92,10 +116,10 @@ async function saveClient(event) {
 function setupClientModalEvents() {
   // Botão fechar no X
   document.getElementById('close-client-modal').addEventListener('click', closeClientModal);
-  
+
   // Botão cancelar
   document.getElementById('cancel-client').addEventListener('click', closeClientModal);
-  
+
   // Formulário submit
   document.getElementById('client-form').addEventListener('submit', saveClient);
 }

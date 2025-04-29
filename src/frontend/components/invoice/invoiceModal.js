@@ -2,15 +2,13 @@
 const invoiceForm = require('./invoiceForm');
 const invoiceService = require('../../services/invoiceService');
 const clientService = require('../../services/clientService');
-const { loadInvoices } = require('../../pages/invoices');
-const { loadDashboard } = require('../../pages/dashboard');
 const { formatDateForInput } = require('../../assets/js/utils');
 
 // Abrir modal de nota
 async function openInvoiceModal(invoiceId = null) {
   const modal = document.getElementById('invoice-modal');
   const modalTitle = document.getElementById('invoice-modal-title');
-  
+
   // Limpar formulário
   invoiceForm.clearInvoiceForm();
 
@@ -98,11 +96,36 @@ async function saveInvoice(event) {
     closeInvoiceModal();
 
     // Recarregar dados
-    await loadInvoices();
+    try {
+      // Carregar clientes
+      if (typeof window.loadInvoices === 'function') {
+        await window.loadInvoices();
+      } else {
+        // Tentar importar dinamicamente para evitar dependência circular
+        const clients = require('../../pages/clients');
+        if (typeof clients.loadInvoices === 'function') {
+          await clients.loadInvoices();
+        }
+      }
 
-    // Recarregar dashboard se estiver visível
-    if (document.getElementById('dashboard').classList.contains('active')) {
-      await loadDashboard();
+      // Recarregar dashboard se estiver visível
+      if (document.getElementById('dashboard').classList.contains('active')) {
+        try {
+          if (typeof window.loadDashboard === 'function') {
+            await window.loadDashboard();
+          } else {
+            // Tentar importar dinamicamente
+            const dashboard = require('../../pages/dashboard');
+            if (typeof dashboard.loadDashboard === 'function') {
+              await dashboard.loadDashboard();
+            }
+          }
+        } catch (error) {
+          console.log('O dashboard não foi atualizado, mas o cliente foi salvo.', error);
+        }
+      }
+    } catch (error) {
+      console.log('A lista de clientes não foi atualizada, mas o cliente foi salvo.', error);
     }
 
     // Mostrar mensagem de sucesso
@@ -117,15 +140,15 @@ async function saveInvoice(event) {
 function setupInvoiceModalEvents() {
   // Botão fechar no X
   document.getElementById('close-invoice-modal').addEventListener('click', closeInvoiceModal);
-  
+
   // Botão cancelar
   document.getElementById('cancel-invoice').addEventListener('click', closeInvoiceModal);
-  
+
   // Botão adicionar produto
   document.getElementById('add-product').addEventListener('click', () => {
     invoiceForm.addProductField();
   });
-  
+
   // Formulário submit
   document.getElementById('invoice-form').addEventListener('submit', saveInvoice);
 
