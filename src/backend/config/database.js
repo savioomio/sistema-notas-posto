@@ -1,17 +1,24 @@
-// database.js - Configuração do banco de dados SQLite
+// src/backend/config/database.js
 const Database = require('better-sqlite3');
 const path = require('path');
 const { app } = require('electron');
 
-// Determinar o caminho do banco de dados (na pasta userdata do Electron)
+// Determinar o caminho do banco de dados
 let dbPath;
 if (app) {
   // Se estamos no processo principal
   dbPath = path.join(app.getPath('userData'), 'database.sqlite');
 } else {
   // Se estamos em um processo filho (como o servidor Express)
-  const { remote } = require('electron');
-  dbPath = path.join(remote.app.getPath('userData'), 'database.sqlite');
+  try {
+    const { remote } = require('electron');
+    dbPath = path.join(remote.app.getPath('userData'), 'database.sqlite');
+  } catch (error) {
+    // Fallback para ambiente de desenvolvimento ou teste
+    const userDataPath = process.env.APPDATA || 
+      (process.platform === 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME + '/.local/share');
+    dbPath = path.join(userDataPath, 'posto-system', 'database.sqlite');
+  }
 }
 
 // Inicializar o banco de dados
@@ -80,23 +87,7 @@ function initDatabase() {
   console.log('Banco de dados inicializado com sucesso!');
 }
 
-// Função para verificar se um cliente tem notas vencidas
-function clientHasOverdueInvoices(clientId) {
-  const today = new Date().toISOString().split('T')[0];
-  
-  const result = db.prepare(`
-    SELECT COUNT(*) as count 
-    FROM invoices 
-    WHERE client_id = ? 
-      AND status = 'pendente' 
-      AND due_date < ?
-  `).get(clientId, today);
-  
-  return result.count > 0;
-}
-
 module.exports = {
   db,
-  initDatabase,
-  clientHasOverdueInvoices
+  initDatabase
 };
