@@ -1,0 +1,157 @@
+// src/frontend/app.js
+// Aplicação principal do frontend
+const { ipcRenderer } = require('electron');
+
+// Importar serviços
+const api = require('./services/api');
+const authService = require('./services/authService');
+
+// Importar páginas
+const dashboard = require('./pages/dashboard');
+const clients = require('./pages/clients');
+const invoices = require('./pages/invoices');
+const settings = require('./pages/settings');
+
+// Importar componentes
+const clientModal = require('./components/client/clientModal');
+const invoiceModal = require('./components/invoice/invoiceModal');
+
+// Configurações
+let config = {};
+
+// ---------- FUNÇÕES DE NAVEGAÇÃO ----------
+
+// Alternar entre abas
+function showTab(tabId) {
+  // Remover classe active de todas as abas
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.classList.remove('active');
+  });
+
+  // Adicionar classe active na aba selecionada
+  document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+
+  // Esconder todos os conteúdos
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.remove('active');
+  });
+
+  // Mostrar o conteúdo selecionado
+  document.getElementById(tabId).classList.add('active');
+
+  // Carregar dados da aba selecionada
+  if (tabId === 'dashboard') {
+    dashboard.loadDashboard();
+  } else if (tabId === 'clients') {
+    clients.loadClients();
+  } else if (tabId === 'invoices') {
+    invoices.loadInvoices();
+  } else if (tabId === 'settings') {
+    settings.loadSettings();
+  }
+}
+
+// Mostrar página de login ou aplicação principal
+function showApp(isAuthenticated) {
+  if (isAuthenticated) {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('main-app').classList.remove('hidden');
+    dashboard.loadDashboard();
+  } else {
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('main-app').classList.add('hidden');
+    document.getElementById('password').value = '';
+  }
+}
+
+// ---------- INICIALIZAÇÃO ----------
+
+// Inicializar aplicação
+async function initApp() {
+  try {
+    // Carregar configurações
+    config = await ipcRenderer.invoke('get-config');
+
+    // Configurar URL da API
+    if (config.runServer) {
+      api.setApiUrl(`http://localhost:${config.serverPort}`);
+    } else {
+      api.setApiUrl(`http://${config.serverIp}:${config.serverPort}`);
+    }
+
+    // Verificar autenticação
+    const isAuthenticated = await authService.checkAuth();
+    showApp(isAuthenticated);
+
+    // Configurar eventos
+    setupEvents();
+
+    // Verificar status do servidor periodicamente
+    setInterval(settings.updateServerStatus, 5000);
+  } catch (error) {
+    console.error('Erro ao inicializar aplicação:', error);
+  }
+}
+
+// Configurar eventos
+function setupEvents() {
+  // Eventos de autenticação
+  document.getElementById('login-button').addEventListener('click', async () => {
+    const password = document.getElementById('password').value;
+    const loginError = document.getElementById('login-error');
+    
+    if (!password) {
+      const utils = require('./assets/js/utils');
+      utils.showAlert('Digite a senha', 'error', loginError);
+      return;
+    }
+    
+    try {
+      await authService.login(password);
+      showApp(true);
+    } catch (error) {
+      const utils = require('./assets/js/utils');
+      utils.showAlert(error.message || 'Senha incorreta', 'error', loginError);
+    }
+  });
+  
+  document.getElementById('password').addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+      document.getElementById('login-button').click();
+    }
+  });
+
+  // Eventos de navegação
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      showTab(tab.dataset.tab);
+    });
+  });
+
+  // Configurar eventos das páginas
+  dashboard.setupInitialDashboardEvents();
+  clients.setupInitialClientsEvents();
+  invoices.setupInitialInvoicesEvents();
+  settings.setupInitialSettingsEvents();
+
+  // Configurar eventos dos modais
+  clientModal.setupClientModalEvents();
+  invoiceModal.setupInvoiceModalEvents();
+
+  // Receber atualizações de configuração do processo principal
+  ipcRenderer.on('config-loaded', (event, newConfig) => {
+    config = newConfig;
+
+    // Atualizar URL da API
+    if (config.runServer) {
+      api.setApiUrl(`http://localhost:${config.serverPort}`);
+    } else {
+      api.setApiUrl(`http://${config.serverIp}:${config.serverPort}`);
+    }
+
+    settings.updateServerStatus();
+  });
+}
+
+// Inicializar quando o DOM estiver carregado
+document.addEventListener('DOMContentLoaded', initApp);

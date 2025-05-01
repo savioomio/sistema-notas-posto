@@ -4,8 +4,8 @@ const path = require('path');
 const fs = require('fs');
 
 // Importar módulos do sistema
-const { initDatabase } = require('./database');
-const { startServer } = require('./server');
+const { initDatabase } = require('./src/backend/config/database');
+const { startServer } = require('./src/backend/server');
 
 // Configurações
 const CONFIG_FILE = path.join(app.getPath('userData'), 'config.json');
