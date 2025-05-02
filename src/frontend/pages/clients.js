@@ -283,20 +283,37 @@ function setupFilterEvents() {
 }
 
 // Configurar eventos iniciais
+// Configurar eventos iniciais
 function setupInitialClientsEvents() {
-  // Botão novo cliente
-  document.getElementById('new-client-btn').addEventListener('click', () => {
-    openClientModal();
-  });
-  
-  // Botão aplicar filtros
-  document.getElementById('client-filter-apply').addEventListener('click', applyFilters);
-  
-  // Botão limpar filtros
-  document.getElementById('client-filter-clear').addEventListener('click', clearFilters);
-  
-  // Configurar eventos dos filtros
-  setupFilterEvents();
+  try {
+    // Botão novo cliente
+    const newClientBtn = document.getElementById('new-client-btn');
+    if (newClientBtn) {
+      newClientBtn.addEventListener('click', () => {
+        openClientModal();
+      });
+    }
+    
+    // Botão aplicar filtros
+    const clientFilterApplyBtn = document.getElementById('client-filter-apply');
+    if (clientFilterApplyBtn) {
+      clientFilterApplyBtn.addEventListener('click', applyFilters);
+    }
+    
+    // Botão limpar filtros
+    const clientFilterClearBtn = document.getElementById('client-filter-clear');
+    if (clientFilterClearBtn) {
+      clientFilterClearBtn.addEventListener('click', clearFilters);
+    }
+    
+    // Configurar eventos dos filtros apenas se houver elementos filter-option
+    const filterOptions = document.querySelectorAll('.filter-option');
+    if (filterOptions.length > 0) {
+      setupFilterEvents();
+    }
+  } catch (error) {
+    console.error('Erro ao configurar eventos iniciais dos clientes:', error);
+  }
 }
 
 module.exports = {
