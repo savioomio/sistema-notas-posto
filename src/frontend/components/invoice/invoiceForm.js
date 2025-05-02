@@ -139,18 +139,29 @@ function addProductField(name = '', value = '') {
     productItem.querySelector('.product-value').value = value;
   }
 
-  // Adicionar evento para remover produto
-  productItem.querySelector('.remove-product').addEventListener('click', removeProductField);
+  // Adicionar evento para remover produto - certifique-se de que está sendo vinculado corretamente
+  const removeButton = productItem.querySelector('.remove-product');
+  if (removeButton) {
+    removeButton.addEventListener('click', removeProductField);
+  }
 
   // Adicionar ao container
   productsContainer.appendChild(productItem);
+  
+  // Recalcular o valor total após adicionar o produto
+  setTimeout(calculateTotalValue, 0); // Usando setTimeout para garantir que a UI foi atualizada
 }
-
 // Remover campo de produto
 function removeProductField(event) {
-  const button = event.target;
-  const productItem = button.parentElement;
-  productItem.remove();
+  const button = event.currentTarget;
+  // O problema pode estar em como estamos encontrando o elemento pai
+  // Vamos garantir que estamos removendo todo o container do produto
+  const productItem = button.closest('.product-item');
+  if (productItem) {
+    productItem.remove();
+    // Também devemos recalcular o valor total após a remoção
+    calculateTotalValue();
+  }
 }
 
 // Calcular valor total com base nos produtos

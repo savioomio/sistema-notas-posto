@@ -4,38 +4,41 @@
    "description": "Sistema de gestão para posto de gasolina",
    "main": "main.js",
    "scripts": {
-     "start": "electron .",
-     "dev": "electron . --dev",
-     "postinstall": "electron-rebuild",
-     "build:win": "electron-builder --win",
-     "build:mac": "electron-builder --mac",
-     "build:linux": "electron-builder --linux"
+      "start": "electron .",
+      "dev": "electron . --dev",
+      "tw": "npx @tailwindcss/cli -i ./src/frontend/assets/css/input.css -o ./src/frontend/assets/css/output.css --watch --minify",
+      "postinstall": "electron-rebuild",
+      "build:win": "electron-builder --win",
+      "build:mac": "electron-builder --mac",
+      "build:linux": "electron-builder --linux"
    },
    "build": {
-     "appId": "com.posto.system",
-     "productName": "Sistema do Posto",
-     "directories": {
-       "output": "dist"
-     },
-     "win": {
-       "target": "nsis"
-     },
-     "mac": {
-       "target": "dmg"
-     },
-     "linux": {
-       "target": "AppImage"
-     }
+      "appId": "com.posto.system",
+      "productName": "Sistema do Posto",
+      "directories": {
+         "output": "dist"
+      },
+      "win": {
+         "target": "nsis"
+      },
+      "mac": {
+         "target": "dmg"
+      },
+      "linux": {
+         "target": "AppImage"
+      }
    },
    "dependencies": {
-     "better-sqlite3": "^11.9.1",
-     "express": "^4.18.2",
-     "cors": "^2.8.5",
-     "jsonwebtoken": "^9.0.2"
+      "@tailwindcss/cli": "^4.1.5",
+      "better-sqlite3": "^11.9.1",
+      "cors": "^2.8.5",
+      "express": "^4.18.2",
+      "jsonwebtoken": "^9.0.2",
+      "tailwindcss": "^4.1.5"
    },
    "devDependencies": {
-     "electron": "^29.1.0",
-     "electron-builder": "^24.9.1",
-     "electron-rebuild": "^3.2.9"
+      "electron": "^29.1.0",
+      "electron-builder": "^24.9.1",
+      "electron-rebuild": "^3.2.9"
    }
- }
+}
