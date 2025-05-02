@@ -18,17 +18,20 @@ async function loadDashboard() {
 
     if (overdueClients.length === 0) {
       const row = document.createElement('tr');
-      row.innerHTML = '<td colspan="4">Nenhum cliente com notas vencidas</td>';
+      row.innerHTML = '<td colspan="4" class="px-6 py-4 text-sm text-gray-500 text-center">Nenhum cliente com notas vencidas</td>';
       overdueClientsTable.appendChild(row);
     } else {
       overdueClients.forEach(client => {
         const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 transition-colors';
         row.innerHTML = `
-          <td>${client.name}</td>
-          <td>${client.document}</td>
-          <td>${client.phone}</td>
-          <td>
-            <button class="view-client" data-id="${client.id}">Ver</button>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${client.name}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.document}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.phone}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <button class="view-client px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors" data-id="${client.id}">
+              Ver
+            </button>
           </td>
         `;
         overdueClientsTable.appendChild(row);
@@ -44,24 +47,32 @@ async function loadDashboard() {
 
     if (pendingInvoices.length === 0) {
       const row = document.createElement('tr');
-      row.innerHTML = '<td colspan="5">Nenhuma nota pendente</td>';
+      row.innerHTML = '<td colspan="5" class="px-6 py-4 text-sm text-gray-500 text-center">Nenhuma nota pendente</td>';
       pendingInvoicesTable.appendChild(row);
     } else {
       pendingInvoices.forEach(invoice => {
         const isInvoiceOverdue = isOverdue(invoice.due_date);
         const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 transition-colors';
         row.innerHTML = `
-          <td>${invoice.client_name}</td>
-          <td>${formatDate(invoice.due_date)}</td>
-          <td>${formatCurrency(invoice.total_value)}</td>
-          <td>
-            <span class="status-badge ${isInvoiceOverdue ? 'status-overdue' : 'status-pending'}">
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${invoice.client_name}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(invoice.due_date)}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(invoice.total_value)}</td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+              ${isInvoiceOverdue 
+                ? 'bg-red-100 text-red-800' 
+                : 'bg-yellow-100 text-yellow-800'}">
               ${isInvoiceOverdue ? 'Vencida' : 'Pendente'}
             </span>
           </td>
-          <td>
-            <button class="view-invoice" data-id="${invoice.id}">Ver</button>
-            <button class="pay-invoice" data-id="${invoice.id}">Pagar</button>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <button class="view-invoice mr-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors" data-id="${invoice.id}">
+              Ver
+            </button>
+            <button class="pay-invoice px-3 py-1 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors" data-id="${invoice.id}">
+              Pagar
+            </button>
           </td>
         `;
         pendingInvoicesTable.appendChild(row);
@@ -74,7 +85,6 @@ async function loadDashboard() {
     console.error('Erro ao carregar dashboard:', error);
   }
 }
-
 // Marcar nota como paga
 async function payInvoice(invoiceId) {
   try {

@@ -4,6 +4,16 @@ const api = require('../services/api');
 const authService = require('../services/authService');
 const { showAlert } = require('../assets/js/utils');
 
+// Função de logout
+function logout() {
+  // Limpar token de autenticação
+  authService.logout();
+
+  // Redirecionar para a tela de login
+  // Isso deve chamar a função showApp do app.js, então vamos exportá-la
+  window.showLoginScreen();
+}
+
 // Carregar configurações
 async function loadSettings() {
   try {
@@ -70,12 +80,13 @@ async function updateServerStatus() {
 
   if (isConnected) {
     statusElement.textContent = 'Conectado ao servidor';
-    statusElement.className = 'server-status status-connected';
+    statusElement.className = 'ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800';
   } else {
     statusElement.textContent = 'Desconectado do servidor';
-    statusElement.className = 'server-status status-disconnected';
+    statusElement.className = 'ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800';
   }
 }
+
 
 // Alterar senha
 async function changePassword() {
@@ -112,12 +123,15 @@ async function changePassword() {
 function setupInitialSettingsEvents() {
   // Alternar configurações de servidor/cliente
   document.getElementById('run-server').addEventListener('change', toggleServerConfig);
-  
+
   // Salvar configurações de rede
   document.getElementById('save-network-config').addEventListener('click', saveNetworkConfig);
-  
+
   // Alterar senha
   document.getElementById('change-password').addEventListener('click', changePassword);
+
+  // Botão de logout
+  document.getElementById('logout-button').addEventListener('click', logout);
 }
 
 module.exports = {
@@ -126,5 +140,6 @@ module.exports = {
   saveNetworkConfig,
   updateServerStatus,
   changePassword,
+  logout,
   setupInitialSettingsEvents
 };

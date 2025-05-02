@@ -13,24 +13,31 @@ async function loadClients() {
 
     if (clients.length === 0) {
       const row = document.createElement('tr');
-      row.innerHTML = '<td colspan="6">Nenhum cliente cadastrado</td>';
+      row.innerHTML = '<td colspan="6" class="px-6 py-4 text-sm text-gray-500 text-center">Nenhum cliente cadastrado</td>';
       clientsTable.appendChild(row);
     } else {
       clients.forEach(client => {
         const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 transition-colors';
         row.innerHTML = `
-          <td>${client.type === 'PF' ? 'Pessoa Física' : 'Pessoa Jurídica'}</td>
-          <td>${client.name}</td>
-          <td>${client.document}</td>
-          <td>${client.phone}</td>
-          <td>
-            <span class="status-badge ${client.has_overdue ? 'status-overdue' : 'status-paid'}">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            ${client.type === 'PF' ? 'Pessoa Física' : 'Pessoa Jurídica'}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${client.name}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.document}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.phone}</td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${client.has_overdue ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
               ${client.has_overdue ? 'Com notas vencidas' : 'Regular'}
             </span>
           </td>
-          <td>
-            <button class="edit-client" data-id="${client.id}">Editar</button>
-            <button class="delete-client danger" data-id="${client.id}">Excluir</button>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <button class="edit-client mr-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors" data-id="${client.id}">
+              Editar
+            </button>
+            <button class="delete-client px-3 py-1 rounded-full bg-red-100 text-red-700 hover:bg-red-200 transition-colors" data-id="${client.id}">
+              Excluir
+            </button>
           </td>
         `;
         clientsTable.appendChild(row);

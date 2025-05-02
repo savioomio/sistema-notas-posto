@@ -26,18 +26,28 @@ function showTab(tabId) {
   // Remover classe active de todas as abas
   document.querySelectorAll('.tab').forEach(tab => {
     tab.classList.remove('active');
+    // Remover estilo ativo
+    const tabLink = tab.querySelector('a');
+    tabLink.classList.remove('border-blue-500', 'text-blue-600');
+    tabLink.classList.add('border-transparent');
   });
 
   // Adicionar classe active na aba selecionada
-  document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+  const activeTab = document.querySelector(`.tab[data-tab="${tabId}"]`);
+  activeTab.classList.add('active');
+  
+  // Adicionar estilo ativo
+  const activeTabLink = activeTab.querySelector('a');
+  activeTabLink.classList.remove('border-transparent');
+  activeTabLink.classList.add('border-blue-500', 'text-blue-600');
 
   // Esconder todos os conteúdos
   document.querySelectorAll('.tab-content').forEach(content => {
-    content.classList.remove('active');
+    content.classList.add('hidden');
   });
 
   // Mostrar o conteúdo selecionado
-  document.getElementById(tabId).classList.add('active');
+  document.getElementById(tabId).classList.remove('hidden');
 
   // Carregar dados da aba selecionada
   if (tabId === 'dashboard') {
@@ -56,13 +66,19 @@ function showApp(isAuthenticated) {
   if (isAuthenticated) {
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('main-app').classList.remove('hidden');
-    dashboard.loadDashboard();
+    // Inicialmente mostrar o dashboard
+    showTab('dashboard');
   } else {
     document.getElementById('login-screen').classList.remove('hidden');
     document.getElementById('main-app').classList.add('hidden');
     document.getElementById('password').value = '';
   }
 }
+
+// Expor função para mostrar tela de login (para o logout)
+window.showLoginScreen = function() {
+  showApp(false);
+};
 
 // ---------- INICIALIZAÇÃO ----------
 

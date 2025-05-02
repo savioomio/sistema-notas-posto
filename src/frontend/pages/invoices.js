@@ -13,26 +13,36 @@ async function loadInvoices() {
 
     if (invoices.length === 0) {
       const row = document.createElement('tr');
-      row.innerHTML = '<td colspan="6">Nenhuma nota cadastrada</td>';
+      row.innerHTML = '<td colspan="6" class="px-6 py-4 text-sm text-gray-500 text-center">Nenhuma nota cadastrada</td>';
       invoicesTable.appendChild(row);
     } else {
       invoices.forEach(invoice => {
         const isInvoiceOverdue = invoice.status === 'pendente' && isOverdue(invoice.due_date);
 
         const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 transition-colors';
         row.innerHTML = `
-          <td>${invoice.client_name}</td>
-          <td>${formatDate(invoice.purchase_date)}</td>
-          <td>${formatDate(invoice.due_date)}</td>
-          <td>${formatCurrency(invoice.total_value)}</td>
-          <td>
-            <span class="status-badge ${invoice.status === 'paga' ? 'status-paid' : (isInvoiceOverdue ? 'status-overdue' : 'status-pending')}">
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${invoice.client_name}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(invoice.purchase_date)}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(invoice.due_date)}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(invoice.total_value)}</td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+              ${invoice.status === 'paga' 
+                ? 'bg-green-100 text-green-800' 
+                : (isInvoiceOverdue 
+                  ? 'bg-red-100 text-red-800' 
+                  : 'bg-yellow-100 text-yellow-800')}">
               ${invoice.status === 'paga' ? 'Paga' : (isInvoiceOverdue ? 'Vencida' : 'Pendente')}
             </span>
           </td>
-          <td>
-            <button class="edit-invoice" data-id="${invoice.id}">Editar</button>
-            <button class="delete-invoice danger" data-id="${invoice.id}">Excluir</button>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <button class="edit-invoice mr-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors" data-id="${invoice.id}">
+              Editar
+            </button>
+            <button class="delete-invoice px-3 py-1 rounded-full bg-red-100 text-red-700 hover:bg-red-200 transition-colors" data-id="${invoice.id}">
+              Excluir
+            </button>
           </td>
         `;
         invoicesTable.appendChild(row);
@@ -46,6 +56,7 @@ async function loadInvoices() {
     alert('Erro ao carregar notas: ' + error.message);
   }
 }
+
 
 // Excluir nota
 async function deleteInvoice(invoiceId) {
