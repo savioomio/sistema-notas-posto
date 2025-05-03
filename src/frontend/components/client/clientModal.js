@@ -26,6 +26,9 @@ async function openClientModal(clientId = null) {
   } else {
     // Modo de criação
     modalTitle.textContent = 'Novo Cliente';
+    
+    // Inicializar com tipo PF
+    clientForm.updateClientTypeUI('PF');
   }
 
   // Mostrar modal
@@ -103,7 +106,6 @@ async function saveClient(event) {
       console.log('A lista de clientes não foi atualizada, mas o cliente foi salvo.', error);
     }
 
-
     // Mostrar mensagem de sucesso
     alert('Cliente salvo com sucesso!');
   } catch (error) {
@@ -122,6 +124,21 @@ function setupClientModalEvents() {
 
   // Formulário submit
   document.getElementById('client-form').addEventListener('submit', saveClient);
+  
+  // Configurar máscaras e validações
+  clientForm.setupFormMasks();
+  
+  // Configurar cliques nos radio buttons
+  const clientTypeOptions = document.querySelectorAll('.client-type-option');
+  clientTypeOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      const radioInput = this.querySelector('input[type="radio"]');
+      radioInput.checked = true;
+      // Disparar o evento change para atualizar a UI
+      const event = new Event('change');
+      radioInput.dispatchEvent(event);
+    });
+  });
 }
 
 module.exports = {

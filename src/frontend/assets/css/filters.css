@@ -78,3 +78,12 @@ details summary {
      transform: translateY(0);
    }
  }
+
+ .client-type-option.selected {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+.client-type-option.selected .radio-dot {
+  display: flex;
+}

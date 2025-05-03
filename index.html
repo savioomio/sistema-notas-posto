@@ -747,57 +747,107 @@
   </div>
 
   <!-- Modal de Cliente -->
-  <div id="client-modal"
-    class="modal hidden fixed inset-0 bg-[#09172749] bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-    <div class="modal-content bg-white rounded-xl shadow-lg p-6 max-w-md mx-auto w-full">
-      <div class="modal-header flex justify-between items-center mb-4">
-        <h2 id="client-modal-title" class="text-xl font-semibold text-gray-800">Novo Cliente</h2>
-        <span class="close cursor-pointer text-gray-600 hover:text-gray-800 text-2xl"
-          id="close-client-modal">&times;</span>
-      </div>
-      <form id="client-form">
-        <input type="hidden" id="client-id">
-        <div class="mb-4">
-          <label for="client-type" class="block mb-2 text-sm font-medium text-gray-700">Tipo:</label>
-          <select id="client-type" required
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-            <option value="PF">Pessoa Física</option>
-            <option value="PJ">Pessoa Jurídica</option>
-          </select>
-        </div>
-        <div class="mb-4">
-          <label for="client-name" class="block mb-2 text-sm font-medium text-gray-700">Nome:</label>
-          <input type="text" id="client-name" required
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-        </div>
-        <div class="mb-4">
-          <label for="client-document" class="block mb-2 text-sm font-medium text-gray-700">CPF/CNPJ:</label>
-          <input type="text" id="client-document" required
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-        </div>
-        <div class="mb-4">
-          <label for="client-address" class="block mb-2 text-sm font-medium text-gray-700">Endereço:</label>
-          <input type="text" id="client-address"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-        </div>
-        <div class="mb-4">
-          <label for="client-phone" class="block mb-2 text-sm font-medium text-gray-700">Telefone:</label>
-          <input type="text" id="client-phone" required
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-        </div>
-        <div class="flex justify-end space-x-3">
-          <button type="button" id="cancel-client"
-            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
-            Cancelar
-          </button>
-          <button type="submit"
-            class="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 hover:shadow-lg transition-all">
-            Salvar
-          </button>
-        </div>
-      </form>
+  <div id="client-modal" class="modal hidden fixed inset-0 bg-[#09172749] bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+  <div class="modal-content bg-white rounded-xl shadow-lg p-6 max-w-md mx-auto w-full">
+    <div class="modal-header flex justify-between items-center mb-4">
+      <h2 id="client-modal-title" class="text-xl font-semibold text-gray-800">Novo Cliente</h2>
+      <span class="close cursor-pointer text-gray-600 hover:text-gray-800 text-2xl"
+        id="close-client-modal">&times;</span>
     </div>
+    <form id="client-form">
+      <input type="hidden" id="client-id">
+      
+      <!-- Tipo de Cliente (Radio buttons estilizados) -->
+      <div class="mb-4">
+        <label class="block mb-2 text-sm font-medium text-gray-700">Tipo de Cliente:</label>
+        <div class="flex space-x-4">
+          <label class="client-type-option flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer transition-all hover:border-blue-500">
+            <input type="radio" name="client-type" value="PF" class="hidden" checked>
+            <span class="radio-checkmark w-5 h-5 border border-gray-400 rounded-full mr-2 flex items-center justify-center">
+              <span class="radio-dot w-3 h-3 bg-blue-500 rounded-full hidden"></span>
+            </span>
+            <span>Pessoa Física</span>
+          </label>
+          <label class="client-type-option flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer transition-all hover:border-blue-500">
+            <input type="radio" name="client-type" value="PJ" class="hidden">
+            <span class="radio-checkmark w-5 h-5 border border-gray-400 rounded-full mr-2 flex items-center justify-center">
+              <span class="radio-dot w-3 h-3 bg-blue-500 rounded-full hidden"></span>
+            </span>
+            <span>Pessoa Jurídica</span>
+          </label>
+        </div>
+      </div>
+      
+      <!-- Nome -->
+      <div class="mb-4">
+        <label for="client-name" class="block mb-2 text-sm font-medium text-gray-700">Nome:</label>
+        <input type="text" id="client-name" required placeholder="Digite o nome completo"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+      </div>
+      
+      <!-- Documento (CPF/CNPJ) -->
+      <div class="mb-4">
+        <label for="client-document" id="document-label" class="block mb-2 text-sm font-medium text-gray-700">CPF:</label>
+        <input type="text" id="client-document" required placeholder="000.000.000-00"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+      </div>
+      
+      <!-- Telefone -->
+      <div class="mb-4">
+        <label for="client-phone" class="block mb-2 text-sm font-medium text-gray-700">Telefone:</label>
+        <input type="text" id="client-phone" required placeholder="(00) 00000-0000"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+      </div>
+      
+      <!-- Endereço (dividido em vários campos) -->
+      <div class="mb-4">
+        <label class="block mb-2 text-sm font-medium text-gray-700">Endereço:</label>
+        <div class="grid grid-cols-2 gap-3 mb-2">
+          <div>
+            <input type="text" id="client-cep" placeholder="CEP" 
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+          </div>
+          <div>
+            <input type="text" id="client-number" placeholder="Número" 
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+          </div>
+        </div>
+        <div class="mb-2">
+          <input type="text" id="client-street" placeholder="Rua" 
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+        </div>
+        <div class="grid grid-cols-2 gap-3 mb-2">
+          <div>
+            <input type="text" id="client-neighborhood" placeholder="Bairro" 
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+          </div>
+          <div>
+            <input type="text" id="client-city" placeholder="Cidade" 
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+          </div>
+        </div>
+        <div>
+          <input type="text" id="client-complement" placeholder="Complemento (opcional)" 
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+        </div>
+        <!-- Campo oculto para armazenar o endereço completo -->
+        <input type="hidden" id="client-address">
+      </div>
+      
+      <!-- Botões de ação -->
+      <div class="flex justify-end space-x-3">
+        <button type="button" id="cancel-client"
+          class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+          Cancelar
+        </button>
+        <button type="submit"
+          class="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 hover:shadow-lg transition-all">
+          Salvar
+        </button>
+      </div>
+    </form>
   </div>
+</div>
 
   <!-- Modal de Nota -->
   <div id="invoice-modal"
