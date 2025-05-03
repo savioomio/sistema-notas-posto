@@ -11,6 +11,7 @@ const dashboard = require('./pages/dashboard');
 const clients = require('./pages/clients');
 const invoices = require('./pages/invoices');
 const settings = require('./pages/settings');
+const clientProfile = require('./pages/clientProfile');
 
 // Importar componentes
 const clientModal = require('./components/client/clientModal');
@@ -60,6 +61,23 @@ function showTab(tabId) {
     settings.loadSettings();
   }
 }
+
+// Adicionar uma nova função para mostrar o perfil do cliente (após a função showApp)
+function showClientProfile(clientId) {
+  // Esconder todos os conteúdos
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.add('hidden');
+  });
+  
+  // Mostrar o perfil do cliente
+  document.getElementById('client-profile').classList.remove('hidden');
+  
+  // Carregar os dados do cliente
+  clientProfile.loadClientProfile(clientId);
+}
+
+// Expor a função para o escopo global (após o window.showLoginScreen)
+window.showClientProfile = showClientProfile;
 
 // Mostrar página de login ou aplicação principal
 function showApp(isAuthenticated) {

@@ -5,7 +5,7 @@ const clientService = require('../../services/clientService');
 const { formatDateForInput } = require('../../assets/js/utils');
 
 // Abrir modal de nota
-async function openInvoiceModal(invoiceId = null) {
+async function openInvoiceModal(invoiceId = null, preselectedClientId = null) {
   const modal = document.getElementById('invoice-modal');
   const modalTitle = document.getElementById('invoice-modal-title');
 
@@ -22,6 +22,12 @@ async function openInvoiceModal(invoiceId = null) {
       const option = document.createElement('option');
       option.value = client.id;
       option.textContent = `${client.name} (${client.document})`;
+      
+      // Se houver um cliente pré-selecionado, marcar como selecionado
+      if (preselectedClientId && client.id == preselectedClientId) {
+        option.selected = true;
+      }
+      
       clientSelect.appendChild(option);
     });
 
