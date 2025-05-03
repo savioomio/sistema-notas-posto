@@ -201,6 +201,9 @@ function renderClients(clients) {
           </span>
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+          <button class="view-client-profile mr-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors" data-id="${client.id}">
+            Ver Perfil
+          </button>
           <button class="edit-client mr-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors" data-id="${client.id}">
             Editar
           </button>
@@ -216,6 +219,7 @@ function renderClients(clients) {
   // Configurar eventos
   setupClientsEvents();
 }
+
 
 // Excluir cliente
 async function deleteClient(clientId) {
@@ -240,6 +244,14 @@ async function deleteClient(clientId) {
 
 // Configurar eventos da página de clientes
 function setupClientsEvents() {
+  // Botões de visualizar perfil
+  document.querySelectorAll('.view-client-profile').forEach(button => {
+    button.addEventListener('click', (event) => {
+      const clientId = event.target.dataset.id;
+      window.showClientProfile(clientId);
+    });
+  });
+
   // Botões de edição
   document.querySelectorAll('.edit-client').forEach(button => {
     button.addEventListener('click', (event) => {

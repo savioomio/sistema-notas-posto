@@ -29,8 +29,8 @@ async function loadDashboard() {
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.document}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.phone}</td>
           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-            <button class="view-client px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors" data-id="${client.id}">
-              Ver
+            <button class="view-client-profile mr-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors" data-id="${client.id}">
+              Ver Perfil
             </button>
           </td>
         `;
@@ -106,6 +106,13 @@ async function payInvoice(invoiceId) {
 // Configurar eventos do dashboard
 function setupDashboardEvents() {
   // Botões de ações nas tabelas (delegação de eventos)
+  document.querySelectorAll('#overdue-clients .view-client-profile').forEach(button => {
+    button.addEventListener('click', (event) => {
+      const clientId = event.target.dataset.id;
+      window.showClientProfile(clientId);
+    });
+  });
+
   document.querySelectorAll('#overdue-clients .view-client').forEach(button => {
     button.addEventListener('click', (event) => {
       const clientId = event.target.dataset.id;
