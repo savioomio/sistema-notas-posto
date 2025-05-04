@@ -4,7 +4,19 @@ const ClientModel = require('../models/client');
 // Listar todos os clientes
 function getAllClients(req, res) {
   try {
-    const clients = ClientModel.getAllClients();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    
+    // Extrair filtros da query
+    const filters = {
+      type: req.query.type || 'all',
+      status: req.query.status || 'all',
+      name: req.query.name || 'none'
+    };
+
+    const clients = ClientModel.getAllClients(page, limit, filters);
+    const total = ClientModel.getClientCount(filters);
+    const totalPages = Math.ceil(total / limit);
     
     // Adicionar flag de notas vencidas para cada cliente
     const clientsWithStatus = clients.map(client => {
@@ -14,7 +26,15 @@ function getAllClients(req, res) {
       };
     });
     
-    res.json(clientsWithStatus);
+    res.json({
+      data: clientsWithStatus,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

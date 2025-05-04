@@ -2,8 +2,9 @@
 const api = require('./api');
 
 // Listar todas as notas
-async function getAllInvoices() {
-  return api.request('invoices');
+async function getAllInvoices(queryParams = '') {
+  const urlParams = queryParams instanceof URLSearchParams ? queryParams.toString() : queryParams;
+  return api.request(`invoices${urlParams ? '?' + urlParams : ''}`);
 }
 
 // Obter uma nota específica

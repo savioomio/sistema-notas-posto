@@ -3,16 +3,59 @@ const invoiceService = require('../services/invoiceService');
 const { formatDate, formatCurrency, isOverdue } = require('../assets/js/utils');
 const { openInvoiceModal } = require('../components/invoice/invoiceModal');
 
-// Armazenar notas para filtragem
-let allInvoices = [];
+// Armazenar dados para paginação
+let currentPage = 1;
+let totalPages = 1;
+let currentFilters = {
+  status: 'all',
+  value: 'all',
+  due: 'all',
+  purchase: 'all'
+};
+
+// Mostrar indicador de carregamento
+function showLoading() {
+  const invoicesTable = document.getElementById('invoices-table').querySelector('tbody');
+  invoicesTable.innerHTML = `
+    <tr>
+      <td colspan="6" class="px-6 py-8 text-sm text-gray-500 text-center">
+        <div class="flex items-center justify-center">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mr-3"></div>
+          Carregando notas...
+        </div>
+      </td>
+    </tr>
+  `;
+}
 
 // Carregar lista de notas
-async function loadInvoices() {
+async function loadInvoices(page = 1) {
   try {
-    allInvoices = await invoiceService.getAllInvoices();
+    showLoading();
     
-    // Aplicar filtros atuais (se houver)
-    applyFilters();
+    currentPage = page;
+    
+    // Enviar filtros e paginação na requisição
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: '30',
+      ...currentFilters
+    });
+    
+    const response = await invoiceService.getAllInvoices(params);
+    
+    // Renderizar notas
+    renderInvoices(response.data);
+    
+    // Atualizar informações de paginação
+    updatePaginationInfo(response.pagination);
+    
+    // Renderizar controles de paginação
+    renderPaginationControls(response.pagination);
+    
+    // Atualizar visualmente os filtros selecionados
+    highlightSelectedFilters();
+    
   } catch (error) {
     console.error('Erro ao carregar notas:', error);
     alert('Erro ao carregar notas: ' + error.message);
@@ -21,20 +64,21 @@ async function loadInvoices() {
 
 // Verificar se há filtros ativos
 function checkActiveFilters() {
-  const valueFilter = document.querySelector('input[name="invoice-filter-value"]:checked').value;
-  const dueFilter = document.querySelector('input[name="invoice-filter-due"]:checked').value;
-  const purchaseFilter = document.querySelector('input[name="invoice-filter-purchase"]:checked').value;
-  const statusFilter = document.querySelector('input[name="invoice-filter-status"]:checked').value;
+  const valueFilter = document.querySelector('input[name="invoice-filter-value"]:checked')?.value || 'all';
+  const dueFilter = document.querySelector('input[name="invoice-filter-due"]:checked')?.value || 'all';
+  const purchaseFilter = document.querySelector('input[name="invoice-filter-purchase"]:checked')?.value || 'all';
+  const statusFilter = document.querySelector('input[name="invoice-filter-status"]:checked')?.value || 'all';
   
   const hasActiveFilters = valueFilter !== 'all' || dueFilter !== 'all' || 
                            purchaseFilter !== 'all' || statusFilter !== 'all';
   
-  // Mostrar indicador de filtros ativos se houver filtros
   const activeFiltersIndicator = document.getElementById('invoice-active-filters');
-  if (hasActiveFilters) {
-    activeFiltersIndicator.classList.remove('hidden');
-  } else {
-    activeFiltersIndicator.classList.add('hidden');
+  if (activeFiltersIndicator) {
+    if (hasActiveFilters) {
+      activeFiltersIndicator.classList.remove('hidden');
+    } else {
+      activeFiltersIndicator.classList.add('hidden');
+    }
   }
   
   return hasActiveFilters;
@@ -52,7 +96,7 @@ function highlightSelectedFilters() {
     document.querySelectorAll(`[name="invoice-filter-${filterType}"]`).forEach(radio => {
       if (radio.checked) {
         const label = radio.closest('.filter-option');
-        label.classList.add('selected');
+        label?.classList.add('selected');
       }
     });
   });
@@ -69,48 +113,16 @@ function applyFilters() {
   const purchaseFilter = document.querySelector('input[name="invoice-filter-purchase"]:checked').value;
   const statusFilter = document.querySelector('input[name="invoice-filter-status"]:checked').value;
   
-  // Destacar filtros selecionados visualmente
-  highlightSelectedFilters();
+  // Atualizar filtros atuais
+  currentFilters = {
+    status: statusFilter,
+    value: valueFilter,
+    due: dueFilter,
+    purchase: purchaseFilter
+  };
   
-  // Aplicar filtros
-  let filteredInvoices = [...allInvoices];
-  
-  // Filtrar por status
-  if (statusFilter !== 'all') {
-    if (statusFilter === 'paid') {
-      filteredInvoices = filteredInvoices.filter(invoice => invoice.status === 'paga');
-    } else if (statusFilter === 'pending') {
-      filteredInvoices = filteredInvoices.filter(invoice => invoice.status === 'pendente' && !isOverdue(invoice.due_date));
-    } else if (statusFilter === 'overdue') {
-      filteredInvoices = filteredInvoices.filter(invoice => invoice.status === 'pendente' && isOverdue(invoice.due_date));
-    }
-  }
-  
-  // Aplicar ordenação
-  
-  // Por valor
-  if (valueFilter === 'asc') {
-    filteredInvoices.sort((a, b) => a.total_value - b.total_value);
-  } else if (valueFilter === 'desc') {
-    filteredInvoices.sort((a, b) => b.total_value - a.total_value);
-  }
-  
-  // Por data de vencimento (sobrescreve ordenação por valor se ambos forem aplicados)
-  if (dueFilter === 'closest') {
-    filteredInvoices.sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
-  } else if (dueFilter === 'furthest') {
-    filteredInvoices.sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
-  }
-  
-  // Por data de compra (sobrescreve ordenações anteriores se aplicado)
-  if (purchaseFilter === 'newest') {
-    filteredInvoices.sort((a, b) => new Date(b.purchase_date) - new Date(a.purchase_date));
-  } else if (purchaseFilter === 'oldest') {
-    filteredInvoices.sort((a, b) => new Date(a.purchase_date) - new Date(b.purchase_date));
-  }
-  
-  // Renderizar notas filtradas
-  renderInvoices(filteredInvoices);
+  // Recarregar da página 1 com novos filtros
+  loadInvoices(1);
   
   // Fechar o acordeão após aplicar filtros
   if (document.getElementById('invoice-filters-accordion').open) {
@@ -126,8 +138,19 @@ function clearFilters() {
   document.querySelector('input[name="invoice-filter-purchase"][value="all"]').checked = true;
   document.querySelector('input[name="invoice-filter-status"][value="all"]').checked = true;
   
-  // Aplicar filtros (agora com valores padrão)
-  applyFilters();
+  // Atualizar os valores dos filtros atuais
+  currentFilters = {
+    status: 'all',
+    value: 'all',
+    due: 'all',
+    purchase: 'all'
+  };
+  
+  // Atualizar visuais
+  highlightSelectedFilters();
+  
+  // Recarregar da página 1 com filtros padrão
+  loadInvoices(1);
 }
 
 // Renderizar lista de notas
@@ -216,10 +239,139 @@ function setupInvoicesEvents() {
     });
   });
 }
+// Atualizar informação de paginação
+function updatePaginationInfo(pagination) {
+  totalPages = pagination.totalPages;
+  const info = document.getElementById('invoice-pagination-info');
+  if (info) {
+    info.textContent = `Página ${pagination.page} de ${pagination.totalPages} - Total: ${pagination.total} notas`;
+  }
+}
+
+// Gerar números de página
+function generateInvoicePageNumbers(pagination) {
+  let pages = '';
+  const startPage = Math.max(1, pagination.page - 2);
+  const endPage = Math.min(pagination.totalPages, pagination.page + 2);
+
+  for (let i = startPage; i <= endPage; i++) {
+    const isActive = i === pagination.page;
+    pages += `
+      <button 
+        data-action="goto"
+        data-page="${i}"
+        class="relative inline-flex items-center px-4 py-2 text-sm font-medium ${
+          isActive 
+            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' 
+            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+        }">
+        ${i}
+      </button>
+    `;
+  }
+  return pages;
+}
+
+// Também adicione navegação por teclado
+document.addEventListener('keydown', (e) => {
+  if (document.querySelector('.tab[data-tab="invoices"]').classList.contains('active')) {
+    if (e.key === 'ArrowLeft' && currentPage > 1) {
+      loadInvoices(currentPage - 1);
+    } else if (e.key === 'ArrowRight' && currentPage < totalPages) {
+      loadInvoices(currentPage + 1);
+    }
+  }
+});
+
+// Copiar as funções de renderização de paginação do clients.js
+function renderPaginationControls(pagination) {
+  const container = document.getElementById('invoice-pagination-controls');
+  if (!container) return;
+  
+  container.innerHTML = `
+    <div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+      <div class="flex justify-between flex-1 sm:hidden">
+        <button 
+          data-action="prev"
+          data-page="${pagination.page - 1}"
+          ${pagination.page === 1 ? 'disabled' : ''}
+          class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md ${pagination.page === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}">
+          Anterior
+        </button>
+        <button 
+          data-action="next"
+          data-page="${pagination.page + 1}"
+          ${pagination.page === pagination.totalPages ? 'disabled' : ''}
+          class="relative ml-3 inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md ${pagination.page === pagination.totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}">
+          Próximo
+        </button>
+      </div>
+      <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Mostrando <span class="font-medium">${((pagination.page - 1) * pagination.limit) + 1}</span> a 
+            <span class="font-medium">${Math.min(pagination.page * pagination.limit, pagination.total)}</span> de 
+            <span class="font-medium">${pagination.total}</span> resultados
+          </p>
+        </div>
+        <div>
+          <nav class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm">
+            <button 
+              data-action="prev"
+              data-page="${pagination.page - 1}"
+              ${pagination.page === 1 ? 'disabled' : ''}
+              class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md ${pagination.page === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}">
+              <span class="sr-only">Anterior</span>
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            ${generateInvoicePageNumbers(pagination)}
+            <button 
+              data-action="next"
+              data-page="${pagination.page + 1}"
+              ${pagination.page === pagination.totalPages ? 'disabled' : ''}
+              class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md ${pagination.page === pagination.totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}">
+              <span class="sr-only">Próximo</span>
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  setupInvoicePaginationEvents();
+}
+
+function setupInvoicePaginationEvents() {
+  const container = document.getElementById('invoice-pagination-controls');
+  if (!container) return;
+  
+  const oldHandler = container.pagination_handler;
+  if (oldHandler) {
+    container.removeEventListener('click', oldHandler);
+  }
+  
+  const handler = (e) => {
+    const button = e.target.closest('button[data-action]');
+    if (!button || button.disabled) return;
+    
+    const page = parseInt(button.dataset.page);
+    if (!isNaN(page)) {
+      loadInvoices(page);
+    }
+  };
+  
+  container.addEventListener('click', handler);
+  container.pagination_handler = handler;
+}
 
 // Configurar eventos dos filtros
 function setupFilterEvents() {
-  // Eventos para destacar visualmente as opções selecionadas
+  // Adicionar event listeners para todos os filtros
   document.querySelectorAll('.filter-option input[type="radio"]').forEach(radio => {
     radio.addEventListener('change', () => {
       highlightSelectedFilters();
@@ -237,6 +389,24 @@ function setupFilterEvents() {
       filters.open = false;
     }
   });
+  
+  // MutationObserver para garantir que os filtros estejam visualmente corretos
+  const filters = document.getElementById('invoice-filters-accordion');
+  if (filters) {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'open') {
+          if (filters.open) {
+            setTimeout(() => {
+              highlightSelectedFilters();
+            }, 10);
+          }
+        }
+      });
+    });
+    
+    observer.observe(filters, { attributes: true });
+  }
 }
 
 // Configurar eventos iniciais
@@ -254,6 +424,11 @@ function setupInitialInvoicesEvents() {
   
   // Configurar eventos dos filtros
   setupFilterEvents();
+  
+  // Garantir que os filtros tenham o visual correto ao iniciar
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    highlightSelectedFilters();
+  }
 }
 
 module.exports = {

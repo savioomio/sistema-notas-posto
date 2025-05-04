@@ -6,7 +6,20 @@ const ClientModel = require('../models/client');
 // Listar todas as notas
 function getAllInvoices(req, res) {
   try {
-    const invoices = InvoiceModel.getAllInvoices();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 30;
+    
+    // Extrair filtros da query
+    const filters = {
+      status: req.query.status || 'all',
+      value: req.query.value || 'all',
+      due: req.query.due || 'all',
+      purchase: req.query.purchase || 'all'
+    };
+
+    const invoices = InvoiceModel.getAllInvoices(page, limit, filters);
+    const total = InvoiceModel.getInvoiceCount(filters);
+    const totalPages = Math.ceil(total / limit);
     
     // Para cada nota, buscar os produtos
     const invoicesWithProducts = invoices.map(invoice => {
@@ -17,11 +30,20 @@ function getAllInvoices(req, res) {
       };
     });
     
-    res.json(invoicesWithProducts);
+    res.json({
+      data: invoicesWithProducts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 }
+
 
 // Obter uma nota específica
 function getInvoiceById(req, res) {
