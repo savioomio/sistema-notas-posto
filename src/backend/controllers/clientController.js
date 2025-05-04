@@ -154,10 +154,24 @@ function deleteClient(req, res) {
   }
 }
 
+function searchClients(req, res) {
+  try {
+    const query = req.query.q || '';
+    const limit = parseInt(req.query.limit) || 10;
+    
+    const clients = ClientModel.searchClients(query, limit);
+    
+    res.json(clients);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   getAllClients,
   getClientById,
   createClient,
   updateClient,
-  deleteClient
+  deleteClient,
+  searchClients
 };

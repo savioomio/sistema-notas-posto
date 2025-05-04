@@ -6,12 +6,14 @@ const {
   getClientById, 
   createClient, 
   updateClient, 
-  deleteClient 
+  deleteClient,
+  searchClients
 } = require('../controllers/clientController');
 const { authenticateToken } = require('../middlewares/auth');
 
 // Rotas de clientes
 router.get('/clients', authenticateToken, getAllClients);
+router.get('/clients/search', authenticateToken, searchClients);
 router.get('/clients/:id', authenticateToken, getClientById);
 router.post('/clients', authenticateToken, createClient);
 router.put('/clients/:id', authenticateToken, updateClient);

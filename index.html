@@ -85,7 +85,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Dashboard -->
       <div id="dashboard" class="tab-content hidden">
         <div class="p-6 bg-gray-50 rounded-2xl shadow-sm">
@@ -400,6 +400,7 @@
               <table id="clients-table" class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                   <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documento
@@ -948,8 +949,7 @@
   </div>
 
   <!-- Modal de Nota -->
-  <div id="invoice-modal"
-    class="modal hidden fixed inset-0 bg-[#09172749] bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+  <div id="invoice-modal" class="modal hidden fixed inset-0 bg-[#09172749] bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
     <div class="modal-content bg-white rounded-xl shadow-lg p-6 max-w-4xl mx-auto w-full">
       <div class="modal-header flex justify-between items-center mb-4">
         <h2 id="invoice-modal-title" class="text-xl font-semibold text-gray-800">Nova Nota de Venda</h2>
@@ -958,14 +958,37 @@
       </div>
       <form id="invoice-form" class="space-y-4">
         <input type="hidden" id="invoice-id">
+        <input type="hidden" id="invoice-client-id">
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label for="invoice-client" class="block mb-2 text-sm font-medium text-gray-700">Cliente:</label>
-            <select id="invoice-client" required
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-              <!-- Opções serão inseridas via JavaScript -->
-            </select>
+          <!-- Sistema de busca de clientes -->
+          <div class="md:col-span-2">
+            <label class="block mb-2 text-sm font-medium text-gray-700">Cliente:</label>
+
+            <!-- Campo de busca -->
+            <div class="relative">
+              <input type="text" id="client-search" placeholder="ID exato (números) ou nome do cliente..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+              
+              <!-- Ícone de busca -->
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              
+              <!-- Resultados da busca -->
+              <div id="client-search-results" 
+                class="hidden absolute z-10 w-full mt-1 bg-white shadow-lg max-h-96 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
+                <!-- Resultados preenchidos via JavaScript -->
+              </div>
+            </div>
+
+            <!-- Cliente selecionado -->
+            <div id="selected-client-display" class="hidden mt-2">
+              <!-- Preenchido via JavaScript -->
+            </div>
           </div>
+
           <div>
             <label for="invoice-purchase-date" class="block mb-2 text-sm font-medium text-gray-700">Data de
               Compra:</label>
@@ -986,13 +1009,14 @@
               <option value="paga">Paga</option>
             </select>
           </div>
-        </div>
-        <div>
-          <label for="invoice-total" class="block mb-2 text-sm font-medium text-gray-700">Valor Total:</label>
-          <input type="number" id="invoice-total" step="0.01" min="0" required
-            class="w-full md:w-1/3 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+          <div>
+            <label for="invoice-total" class="block mb-2 text-sm font-medium text-gray-700">Valor Total:</label>
+            <input type="number" id="invoice-total" step="0.01" min="0" required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+          </div>
         </div>
 
+        <!-- Resto do formulário permanece igual -->
         <div class="mt-6">
           <h3 class="text-lg font-medium text-gray-800 mb-3 flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24"
@@ -1029,6 +1053,7 @@
       </form>
     </div>
   </div>
+
   <!-- Template para linha de produto -->
   <template id="product-template">
     <div
