@@ -1,5 +1,6 @@
 // src/backend/models/client.js
 const { db } = require('../config/database');
+const { removeAccents, escapeLikePattern } = require('../utils/stringUtils');
 
 // Função para verificar se um cliente tem notas vencidas
 function clientHasOverdueInvoices(clientId) {
@@ -151,16 +152,25 @@ function searchClients(query, limit = 10) {
     `).all(parseInt(query), limit);
     
   } else {
-    // Se não for número, buscar apenas por nome
-    const searchTerm = `%${query}%`;
+    // Se não for número, buscar por nome
+    const normalizedQuery = removeAccents(query);
+    const likePattern = `%${escapeLikePattern(normalizedQuery)}%`;
     
-    return db.prepare(`
+    // Buscar clientes e filtrar por nome normalizado no JavaScript
+    const allClients = db.prepare(`
       SELECT id, type, name, document, phone 
       FROM clients 
-      WHERE name LIKE ?
       ORDER BY name ASC
-      LIMIT ?
-    `).all(searchTerm, limit);
+    `).all();
+    
+    // Filtrar clientes onde o nome normalizado contém o termo de busca normalizado
+    const filteredClients = allClients.filter(client => {
+      const normalizedName = removeAccents(client.name);
+      return normalizedName.includes(normalizedQuery);
+    });
+    
+    // Limitar resultados
+    return filteredClients.slice(0, limit);
   }
 }
 

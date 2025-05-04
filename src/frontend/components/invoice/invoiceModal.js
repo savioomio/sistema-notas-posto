@@ -12,10 +12,7 @@ async function openInvoiceModal(invoiceId = null, preselectedClientId = null) {
   const modal = document.getElementById('invoice-modal');
   const modalTitle = document.getElementById('invoice-modal-title');
 
-  // IMPORTANTE: Limpar tudo primeiro
-  closeInvoiceModal(); // Chama a função que limpa tudo
-  
-  // Limpar formulário
+  // Limpar formulário primeiro
   invoiceForm.clearInvoiceForm();
   
   // Garantir que selectedClient está null
@@ -28,6 +25,9 @@ async function openInvoiceModal(invoiceId = null, preselectedClientId = null) {
 
       // Carregar dados da nota
       const invoice = await invoiceService.getInvoiceById(invoiceId);
+      
+      // Mostrar modal ANTES de configurar tudo
+      modal.classList.remove('hidden');
       
       // Pré-carregar cliente se edição
       if (invoice.client_id) {
@@ -42,6 +42,9 @@ async function openInvoiceModal(invoiceId = null, preselectedClientId = null) {
     } else {
       // Modo de criação
       modalTitle.textContent = 'Nova Nota de Venda';
+
+      // Mostrar modal ANTES de configurar tudo
+      modal.classList.remove('hidden');
 
       // Definir data de compra para hoje
       const today = new Date();
@@ -65,11 +68,9 @@ async function openInvoiceModal(invoiceId = null, preselectedClientId = null) {
       invoiceForm.addProductField();
     }
 
-    // Configurar sistema de busca
+    // Configurar sistema de busca DEPOIS de mostrar o modal
     setupClientSearch();
 
-    // Mostrar modal após tudo estar limpo e configurado
-    modal.classList.remove('hidden');
   } catch (error) {
     console.error('Erro ao abrir modal de nota:', error);
     alert(`Erro ao abrir modal de nota: ${error.message}`);
@@ -78,8 +79,15 @@ async function openInvoiceModal(invoiceId = null, preselectedClientId = null) {
 
 // Configurar sistema de busca de clientes
 function setupClientSearch() {
-  const clientSearch = document.getElementById('client-search');
-  const searchResults = document.getElementById('client-search-results');
+  const clientSearch = document.getElementById('invoice-client-search');
+  const searchResults = document.getElementById('invoice-client-search-results');
+  
+  // Verificar se os elementos existem
+  if (!clientSearch || !searchResults) {
+    console.error('Elementos de busca não encontrados');
+    return;
+  }
+  
   let searchTimeout;
 
   // Estado inicial - limpo
@@ -89,9 +97,11 @@ function setupClientSearch() {
 
   // Atualizar valor do campo hidden
   const clientIdField = document.getElementById('invoice-client-id');
-  clientIdField.value = selectedClient ? selectedClient.id : '';
+  if (clientIdField) {
+    clientIdField.value = selectedClient ? selectedClient.id : '';
+  }
 
-  // Mostrar cliente selecionado se existir (para modo edição)
+  // Mostrar cliente selecionado se existir
   if (selectedClient) {
     updateClientDisplay(selectedClient);
   }
@@ -133,7 +143,12 @@ function setupClientSearch() {
 
 // Mostrar resultados da busca
 function displaySearchResults(clients) {
-  const searchResults = document.getElementById('client-search-results');
+  const searchResults = document.getElementById('invoice-client-search-results');
+  
+  if (!searchResults) {
+    console.error('Elemento searchResults não encontrado');
+    return;
+  }
   
   if (clients.length === 0) {
     searchResults.innerHTML = `
@@ -142,7 +157,6 @@ function displaySearchResults(clients) {
       </div>
     `;
   } else {
-    // Mostrar resultados de forma simples
     searchResults.innerHTML = clients
       .map(client => `
         <div class="client-option px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center justify-between"
@@ -174,18 +188,28 @@ function selectClient(client) {
   selectedClient = client;
   updateClientDisplay(client);
   
-  // Ocultar resultados
-  const searchResults = document.getElementById('client-search-results');
-  searchResults.classList.add('hidden');
+  // USAR NOVO ID
+  const searchResults = document.getElementById('invoice-client-search-results');
+  if (searchResults) {
+    searchResults.classList.add('hidden');
+  }
   
-  // Atualizar campo hidden
-  document.getElementById('invoice-client-id').value = client.id;
+  const clientIdField = document.getElementById('invoice-client-id');
+  if (clientIdField) {
+    clientIdField.value = client.id;
+  }
 }
+
 
 // Atualizar display do cliente selecionado
 function updateClientDisplay(client) {
-  const clientDisplay = document.getElementById('selected-client-display');
-  const clientSearch = document.getElementById('client-search');
+  const clientDisplay = document.getElementById('invoice-selected-client-display');
+  const clientSearch = document.getElementById('invoice-client-search');
+  
+  if (!clientDisplay || !clientSearch) {
+    console.error('Elementos clientDisplay ou clientSearch não encontrados');
+    return;
+  }
   
   clientDisplay.innerHTML = `
     <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -209,33 +233,48 @@ function updateClientDisplay(client) {
 // Limpar cliente selecionado
 window.clearSelectedClient = function() {
   selectedClient = null;
-  const clientDisplay = document.getElementById('selected-client-display');
-  const clientSearch = document.getElementById('client-search');
+  const clientDisplay = document.getElementById('invoice-selected-client-display');
+  const clientSearch = document.getElementById('invoice-client-search');
   
-  clientDisplay.classList.add('hidden');
-  clientDisplay.innerHTML = ''; // Limpar conteúdo
-  clientSearch.value = '';
-  document.getElementById('invoice-client-id').value = '';
+  if (clientDisplay) {
+    clientDisplay.classList.add('hidden');
+    clientDisplay.innerHTML = '';
+  }
+  
+  if (clientSearch) {
+    clientSearch.value = '';
+  }
+  
+  const clientIdField = document.getElementById('invoice-client-id');
+  if (clientIdField) {
+    clientIdField.value = '';
+  }
 };
 
 // Fechar modal de nota
 function closeInvoiceModal() {
   document.getElementById('invoice-modal').classList.add('hidden');
-    
-  // Limpar estado e UI
+  
+  // Apenas resetar estado necessário
   selectedClient = null;
-  const clientDisplay = document.getElementById('selected-client-display');
-  clientDisplay.classList.add('hidden');
-  clientDisplay.innerHTML = '';
+
+  const clientDisplay = document.getElementById('invoice-selected-client-display');
+  const clientSearch = document.getElementById('invoice-client-search');
   
-  // Limpar campo de busca
-  const clientSearch = document.getElementById('client-search');
-  clientSearch.value = '';
+  if (clientDisplay) {
+    clientDisplay.classList.add('hidden');
+    clientDisplay.innerHTML = '';
+  }
   
-  // Limpar resultados da busca
-  const searchResults = document.getElementById('client-search-results');
-  searchResults.innerHTML = '';
-  searchResults.classList.add('hidden');
+  if (clientSearch) {
+    clientSearch.value = '';
+  }
+  
+  const searchResults = document.getElementById('invoice-client-search-results');
+  if (searchResults) {
+    searchResults.innerHTML = '';
+    searchResults.classList.add('hidden');
+  }
 }
 
 // Salvar nota

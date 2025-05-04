@@ -277,6 +277,20 @@
             </button>
           </div>
 
+          <div class="mb-4">
+            <div class="flex flex-col md:flex-row gap-4">
+              <div class="flex-1">
+                <input type="text" id="client-search" 
+                  placeholder="Digite o ID exato ou nome do cliente..." 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+              </div>
+              <button id="reset-search" 
+                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                Limpar Busca
+              </button>
+            </div>
+          </div>
+
           <!-- Adicionar controles de filtro -->
           <details id="client-filters-accordion" class="mb-4 bg-white rounded-lg shadow-sm overflow-hidden">
             <summary class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50">
@@ -949,7 +963,8 @@
   </div>
 
   <!-- Modal de Nota -->
-  <div id="invoice-modal" class="modal hidden fixed inset-0 bg-[#09172749] bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+  <div id="invoice-modal" 
+  class="modal hidden fixed inset-0 bg-[#09172749] bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
     <div class="modal-content bg-white rounded-xl shadow-lg p-6 max-w-4xl mx-auto w-full">
       <div class="modal-header flex justify-between items-center mb-4">
         <h2 id="invoice-modal-title" class="text-xl font-semibold text-gray-800">Nova Nota de Venda</h2>
@@ -967,7 +982,7 @@
 
             <!-- Campo de busca -->
             <div class="relative">
-              <input type="text" id="client-search" placeholder="ID exato (números) ou nome do cliente..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+              <input type="text" id="invoice-client-search" placeholder="ID exato (números) ou nome do cliente..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
               
               <!-- Ícone de busca -->
               <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -977,14 +992,14 @@
               </div>
               
               <!-- Resultados da busca -->
-              <div id="client-search-results" 
-                class="hidden absolute z-10 w-full mt-1 bg-white shadow-lg max-h-96 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
-                <!-- Resultados preenchidos via JavaScript -->
-              </div>
+              <div id="invoice-client-search-results" 
+              class="hidden absolute z-10 w-full mt-1 bg-white shadow-lg max-h-96 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
+              <!-- Resultados preenchidos via JavaScript -->
+            </div>
             </div>
 
             <!-- Cliente selecionado -->
-            <div id="selected-client-display" class="hidden mt-2">
+            <div id="invoice-selected-client-display" class="hidden mt-2">
               <!-- Preenchido via JavaScript -->
             </div>
           </div>

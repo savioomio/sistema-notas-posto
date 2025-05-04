@@ -11,6 +11,7 @@ let currentFilters = {
   status: 'all',
   name: 'none'
 };
+let currentSearchQuery = ''; 
 
 function showLoading() {
   const clientsTable = document.getElementById('clients-table').querySelector('tbody');
@@ -33,14 +34,26 @@ async function loadClients(page = 1) {
     
     currentPage = page;
     
-    // Enviar filtros e paginação na requisição
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: '30',
-      ...currentFilters
-    });
+    let response;
     
-    const response = await clientService.getAllClients(params);
+    if (currentSearchQuery.trim()) {
+      // Se houver busca, usar o endpoint de busca com filtros
+      response = await clientService.searchClientsWithFilters(
+        currentSearchQuery, 
+        currentFilters, 
+        page, 
+        30
+      );
+    } else {
+      // Caso contrário, usar o endpoint normal
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '30',
+        ...currentFilters
+      });
+      
+      response = await clientService.getAllClients(params);
+    }
     
     // Renderizar clientes
     renderClients(response.data);
@@ -58,6 +71,28 @@ async function loadClients(page = 1) {
     console.error('Erro ao carregar clientes:', error);
     alert('Erro ao carregar clientes: ' + error.message);
   }
+}
+
+// Atualizar busca
+async function performSearch() {
+  const searchInput = document.getElementById('client-search');
+  currentSearchQuery = searchInput.value.trim();
+  
+  // Resetar para primeira página ao buscar
+  currentPage = 1;
+  
+  // Carregar clientes com busca
+  await loadClients(1);
+}
+
+// Resetar busca
+async function resetSearch() {
+  const searchInput = document.getElementById('client-search');
+  searchInput.value = '';
+  currentSearchQuery = '';
+  
+  // Carregar todos os clientes
+  await loadClients(1);
 }
 
 // Adicionar teclado para navegação
@@ -309,7 +344,8 @@ function applyFilters() {
     name: nameFilter
   };
   
-  // Recarregar da página 1 com novos filtros
+  // Recarregar com filtros atualizados
+  // IMPORTANTE: Manter a busca atual se existir
   loadClients(1);
   
   // Fechar o acordeão após aplicar filtros
@@ -335,7 +371,8 @@ function clearFilters() {
   // Atualizar visuais
   highlightSelectedFilters();
   
-  // Recarregar da página 1 com filtros padrão
+  // Recarregar com filtros limpos
+  // IMPORTANTE: Manter a busca atual se existir
   loadClients(1);
 }
 
@@ -433,7 +470,6 @@ function setupClientsEvents() {
   });
 }
 
-
 function setupFilterVisuals() {
   const filters = document.getElementById('client-filters-accordion');
   
@@ -493,6 +529,30 @@ function setupInitialClientsEvents() {
       });
     }
     
+    // ADICIONAR eventos para busca
+    const searchInput = document.getElementById('client-search');
+    const resetButton = document.getElementById('reset-search');
+    let searchTimeout;
+    
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        // Debounce de 300ms
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(performSearch, 300);
+      });
+      
+      searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          clearTimeout(searchTimeout);
+          performSearch();
+        }
+      });
+    }
+    
+    if (resetButton) {
+      resetButton.addEventListener('click', resetSearch);
+    }
+    
     // Botão aplicar filtros
     const clientFilterApplyBtn = document.getElementById('client-filter-apply');
     if (clientFilterApplyBtn) {
@@ -505,7 +565,7 @@ function setupInitialClientsEvents() {
       clientFilterClearBtn.addEventListener('click', clearFilters);
     }
     
-    // Configurar eventos dos filtros apenas se houver elementos filter-option
+    // Configurar eventos dos filtros
     const filterOptions = document.querySelectorAll('.filter-option');
     if (filterOptions.length > 0) {
       setupFilterEvents();
@@ -516,7 +576,6 @@ function setupInitialClientsEvents() {
       highlightSelectedFilters();
     });
     
-    // Se a página já estiver carregada
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
       highlightSelectedFilters();
     }
