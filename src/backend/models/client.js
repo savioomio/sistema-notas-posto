@@ -9,16 +9,81 @@ function clientHasOverdueInvoices(clientId) {
     SELECT COUNT(*) as count 
     FROM invoices 
     WHERE client_id = ? 
-      AND status = 'pendente' 
+      AND status = 'pendente'
       AND due_date < ?
   `).get(clientId, today);
   
   return result.count > 0;
 }
 
-// Obter todos os clientes
-function getAllClients() {
-  return db.prepare('SELECT * FROM clients ORDER BY name').all();
+// Função para contar clientes com filtros
+function getClientCount(filters = {}) {
+  let sql = 'SELECT COUNT(*) as count FROM clients WHERE 1=1';
+  const params = [];
+
+  if (filters.type && filters.type !== 'all') {
+    sql += ' AND type = ?';
+    params.push(filters.type);
+  }
+
+  if (filters.status && filters.status !== 'all') {
+    const today = new Date().toISOString().split('T')[0];
+    if (filters.status === 'overdue') {
+      // CORRIGIR: usar aspas simples em vez de aspas duplas
+      sql += ' AND id IN (SELECT DISTINCT client_id FROM invoices WHERE status = \'pendente\' AND due_date < ?)';
+      params.push(today);
+    } else if (filters.status === 'regular') {
+      // CORRIGIR: usar aspas simples em vez de aspas duplas
+      sql += ' AND id NOT IN (SELECT DISTINCT client_id FROM invoices WHERE status = \'pendente\' AND due_date < ?)';
+      params.push(today);
+    }
+  }
+
+  const result = db.prepare(sql).get(...params);
+  return result.count;
+}
+
+// Função para obter todos os clientes com paginação e filtros
+function getAllClients(page = 1, limit = 50, filters = {}) {
+  const offset = (page - 1) * limit;
+  let sql = 'SELECT * FROM clients WHERE 1=1';
+  const params = [];
+
+  // Aplicar filtros
+  if (filters.type && filters.type !== 'all') {
+    sql += ' AND type = ?';
+    params.push(filters.type);
+  }
+
+  if (filters.status && filters.status !== 'all') {
+    const today = new Date().toISOString().split('T')[0];
+    if (filters.status === 'overdue') {
+      // CORRIGIR: usar aspas simples em vez de aspas duplas
+      sql += ' AND id IN (SELECT DISTINCT client_id FROM invoices WHERE status = \'pendente\' AND due_date < ?)';
+      params.push(today);
+    } else if (filters.status === 'regular') {
+      // CORRIGIR: usar aspas simples em vez de aspas duplas
+      sql += ' AND id NOT IN (SELECT DISTINCT client_id FROM invoices WHERE status = \'pendente\' AND due_date < ?)';
+      params.push(today);
+    }
+  }
+
+  // Ordenação
+  if (filters.name) {
+    if (filters.name === 'asc') {
+      sql += ' ORDER BY name ASC';
+    } else if (filters.name === 'desc') {
+      sql += ' ORDER BY name DESC';
+    }
+  } else {
+    sql += ' ORDER BY name';
+  }
+
+  // Paginação
+  sql += ' LIMIT ? OFFSET ?';
+  params.push(limit, offset);
+
+  return db.prepare(sql).all(...params);
 }
 
 // Obter um cliente pelo ID
@@ -80,5 +145,6 @@ module.exports = {
   getClientByDocument,
   getOtherClientByDocument,
   clientHasInvoices,
-  clientHasOverdueInvoices
+  clientHasOverdueInvoices,
+  getClientCount
 };

@@ -2,10 +2,10 @@
 const api = require('./api');
 
 // Listar todos os clientes
-async function getAllClients() {
-  return api.request('clients');
+async function getAllClients(queryParams = '') {
+  const urlParams = queryParams instanceof URLSearchParams ? queryParams.toString() : queryParams;
+  return api.request(`clients${urlParams ? '?' + urlParams : ''}`);
 }
-
 // Obter um cliente específico
 async function getClientById(id) {
   return api.request(`clients/${id}`);

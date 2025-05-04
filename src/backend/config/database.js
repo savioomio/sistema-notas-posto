@@ -15,15 +15,15 @@ if (app) {
     dbPath = path.join(remote.app.getPath('userData'), 'database.sqlite');
   } catch (error) {
     // Fallback para ambiente de desenvolvimento ou teste
-    const userDataPath = process.env.APPDATA || 
+    const userDataPath = process.env.APPDATA ||
       (process.platform === 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME + '/.local/share');
     dbPath = path.join(userDataPath, 'posto-system', 'database.sqlite');
   }
 }
 
 // Inicializar o banco de dados
-const db = new Database(dbPath, { 
-  verbose: console.log 
+const db = new Database(dbPath, {
+  verbose: console.log
 });
 
 // Configurar para modo WAL para melhor performance
@@ -82,6 +82,32 @@ function initDatabase() {
       value REAL NOT NULL,
       FOREIGN KEY (invoice_id) REFERENCES invoices (id) ON DELETE CASCADE
     )
+  `);
+
+  console.log('Banco de dados inicializado com sucesso!');
+
+  // Adicionar índices para melhorar performance
+  console.log('Criando índices para melhorar performance...');
+
+  // Índices para a tabela clients
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_clients_type ON clients(type);
+    CREATE INDEX IF NOT EXISTS idx_clients_document ON clients(document);
+    CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name);
+  `);
+
+  // Índices para a tabela invoices
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_invoices_client_id ON invoices(client_id);
+    CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
+    CREATE INDEX IF NOT EXISTS idx_invoices_due_date ON invoices(due_date);
+    CREATE INDEX IF NOT EXISTS idx_invoices_purchase_date ON invoices(purchase_date);
+    CREATE INDEX IF NOT EXISTS idx_invoices_status_due_date ON invoices(status, due_date);
+  `);
+
+  // Índices para a tabela invoice_products
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_invoice_products_invoice_id ON invoice_products(invoice_id);
   `);
 
   console.log('Banco de dados inicializado com sucesso!');
