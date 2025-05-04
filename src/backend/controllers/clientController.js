@@ -167,11 +167,70 @@ function searchClients(req, res) {
   }
 }
 
+function searchClientsWithFilters(req, res) {
+  try {
+    const query = req.query.q || '';
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 30;
+    
+    // Extrair filtros
+    const filters = {
+      type: req.query.type || 'all',
+      status: req.query.status || 'all',
+      name: req.query.name || 'none'
+    };
+    
+    // Buscar clientes (já faz a busca sem acentos internamente)
+    let clients = ClientModel.searchClients(query, 1000); // Buscar mais para depois filtrar
+    
+    // Aplicar filtros adicionais
+    let filteredClients = clients;
+    
+    if (filters.type !== 'all') {
+      filteredClients = filteredClients.filter(client => client.type === filters.type);
+    }
+    
+    if (filters.status !== 'all') {
+      filteredClients = filteredClients.map(client => {
+        client.has_overdue = ClientModel.clientHasOverdueInvoices(client.id);
+        return client;
+      });
+      
+      if (filters.status === 'overdue') {
+        filteredClients = filteredClients.filter(client => client.has_overdue);
+      } else if (filters.status === 'regular') {
+        filteredClients = filteredClients.filter(client => !client.has_overdue);
+      }
+    }
+    
+    const total = filteredClients.length;
+    const totalPages = Math.ceil(total / limit);
+    
+    // Paginação manual
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    const paginatedClients = filteredClients.slice(start, end);
+    
+    res.json({
+      data: paginatedClients,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   getAllClients,
   getClientById,
   createClient,
   updateClient,
   deleteClient,
-  searchClients
+  searchClients,
+  searchClientsWithFilters
 };
