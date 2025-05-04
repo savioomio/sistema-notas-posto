@@ -346,13 +346,14 @@ function renderClients(clients) {
 
   if (clients.length === 0) {
     const row = document.createElement('tr');
-    row.innerHTML = '<td colspan="6" class="px-6 py-4 text-sm text-gray-500 text-center">Nenhum cliente encontrado</td>';
+    row.innerHTML = '<td colspan="7" class="px-6 py-4 text-sm text-gray-500 text-center">Nenhum cliente encontrado</td>';
     clientsTable.appendChild(row);
   } else {
     clients.forEach(client => {
       const row = document.createElement('tr');
       row.className = 'hover:bg-gray-50 transition-colors';
       row.innerHTML = `
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.id}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
           ${client.type === 'PF' ? 'Pessoa Física' : 'Pessoa Jurídica'}
         </td>

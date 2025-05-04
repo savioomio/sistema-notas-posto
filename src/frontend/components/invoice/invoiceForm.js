@@ -3,7 +3,7 @@ const { formatDateForInput } = require('../../assets/js/utils');
 
 // Validar formulário de nota
 function validateInvoiceForm() {
-  const clientId = document.getElementById('invoice-client').value;
+  const clientId = document.getElementById('invoice-client-id').value;
   const purchaseDate = document.getElementById('invoice-purchase-date').value;
   const dueDate = document.getElementById('invoice-due-date').value;
   const status = document.getElementById('invoice-status').value;
@@ -73,7 +73,7 @@ function getInvoiceProducts() {
 // Obter dados do formulário
 function getInvoiceFormData() {
   const invoiceId = document.getElementById('invoice-id').value;
-  const clientId = document.getElementById('invoice-client').value;
+  const clientId = document.getElementById('invoice-client-id').value;
   const purchaseDate = document.getElementById('invoice-purchase-date').value;
   const dueDate = document.getElementById('invoice-due-date').value;
   const status = document.getElementById('invoice-status').value;
@@ -96,7 +96,7 @@ function getInvoiceFormData() {
 // Preencher formulário com dados da nota
 function fillInvoiceForm(invoice) {
   document.getElementById('invoice-id').value = invoice.id;
-  document.getElementById('invoice-client').value = invoice.client_id;
+  document.getElementById('invoice-client-id').value = invoice.client_id;
   document.getElementById('invoice-purchase-date').value = formatDateForInput(invoice.purchase_date);
   document.getElementById('invoice-due-date').value = formatDateForInput(invoice.due_date);
   document.getElementById('invoice-status').value = invoice.status;
@@ -120,7 +120,21 @@ function fillInvoiceForm(invoice) {
 function clearInvoiceForm() {
   document.getElementById('invoice-form').reset();
   document.getElementById('invoice-id').value = '';
+  document.getElementById('invoice-client-id').value = ''; // Limpar ID do cliente
   document.getElementById('products-container').innerHTML = '';
+  
+  // Limpar campo de busca
+  const clientSearch = document.getElementById('client-search');
+  if (clientSearch) {
+    clientSearch.value = '';
+  }
+  
+  // Limpar display do cliente
+  const clientDisplay = document.getElementById('selected-client-display');
+  if (clientDisplay) {
+    clientDisplay.classList.add('hidden');
+    clientDisplay.innerHTML = '';
+  }
 }
 
 // Adicionar campo de produto
@@ -151,6 +165,7 @@ function addProductField(name = '', value = '') {
   // Recalcular o valor total após adicionar o produto
   setTimeout(calculateTotalValue, 0); // Usando setTimeout para garantir que a UI foi atualizada
 }
+
 // Remover campo de produto
 function removeProductField(event) {
   const button = event.currentTarget;

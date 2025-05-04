@@ -26,10 +26,21 @@ async function deleteClient(id) {
   return api.request(`clients/${id}`, 'DELETE');
 }
 
+// Buscar clientes por termos de busca
+async function searchClients(query, limit = 10) {
+  const params = new URLSearchParams({
+    q: query,
+    limit: limit.toString()
+  });
+  
+  return api.request(`clients/search?${params.toString()}`);
+}
+
 module.exports = {
   getAllClients,
   getClientById,
   createClient,
   updateClient,
-  deleteClient
+  deleteClient,
+  searchClients
 };

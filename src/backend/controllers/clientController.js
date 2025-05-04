@@ -80,6 +80,9 @@ function createClient(req, res) {
     
     const newClient = ClientModel.createClient({ type, name, document, address, phone });
     
+    // Emitir evento para WebSocket
+    req.io.emit('client_created', newClient);
+    
     res.status(201).json(newClient);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -113,6 +116,9 @@ function updateClient(req, res) {
     
     const updatedClient = ClientModel.updateClient(clientId, { type, name, document, address, phone });
     
+    // Emitir evento para WebSocket
+    req.io.emit('client_updated', updatedClient);
+    
     res.json(updatedClient);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -139,7 +145,23 @@ function deleteClient(req, res) {
     
     ClientModel.deleteClient(clientId);
     
+    // Emitir evento para WebSocket
+    req.io.emit('client_deleted', { id: clientId });
+    
     res.json({ message: 'Cliente excluído com sucesso' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+function searchClients(req, res) {
+  try {
+    const query = req.query.q || '';
+    const limit = parseInt(req.query.limit) || 10;
+    
+    const clients = ClientModel.searchClients(query, limit);
+    
+    res.json(clients);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -150,5 +172,6 @@ module.exports = {
   getClientById,
   createClient,
   updateClient,
-  deleteClient
+  deleteClient,
+  searchClients
 };

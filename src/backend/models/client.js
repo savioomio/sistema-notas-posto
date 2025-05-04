@@ -136,6 +136,34 @@ function clientHasInvoices(clientId) {
   return result.count > 0;
 }
 
+// Buscar clientes: ID exato para números, nome para texto
+function searchClients(query, limit = 10) {
+  // Verificar se é um número (busca apenas por ID exato)
+  const isNumeric = /^\d+$/.test(query);
+  
+  if (isNumeric) {
+    // Se for número, buscar APENAS ID exato
+    return db.prepare(`
+      SELECT id, type, name, document, phone 
+      FROM clients 
+      WHERE id = ?
+      LIMIT ?
+    `).all(parseInt(query), limit);
+    
+  } else {
+    // Se não for número, buscar apenas por nome
+    const searchTerm = `%${query}%`;
+    
+    return db.prepare(`
+      SELECT id, type, name, document, phone 
+      FROM clients 
+      WHERE name LIKE ?
+      ORDER BY name ASC
+      LIMIT ?
+    `).all(searchTerm, limit);
+  }
+}
+
 module.exports = {
   getAllClients,
   getClientById,
@@ -146,5 +174,6 @@ module.exports = {
   getOtherClientByDocument,
   clientHasInvoices,
   clientHasOverdueInvoices,
-  getClientCount
+  getClientCount,
+  searchClients
 };
