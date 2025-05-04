@@ -44,7 +44,6 @@ function getAllInvoices(req, res) {
   }
 }
 
-
 // Obter uma nota específica
 function getInvoiceById(req, res) {
   try {
@@ -90,13 +89,14 @@ function createInvoice(req, res) {
       total_value
     });
     
-    // Adicionar produtos
     ProductModel.addProductsToInvoice(invoiceId, products);
     
-    // Buscar a nota completa
     const newInvoice = InvoiceModel.getInvoiceById(invoiceId);
     newInvoice.products = ProductModel.getProductsByInvoiceId(invoiceId);
     
+    // Emitir evento para WebSocket
+    req.io.emit('invoice_created', newInvoice);
+
     res.status(201).json(newInvoice);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -144,6 +144,8 @@ function updateInvoice(req, res) {
     // Buscar a nota atualizada
     const updatedInvoice = InvoiceModel.getInvoiceById(invoiceId);
     updatedInvoice.products = ProductModel.getProductsByInvoiceId(invoiceId);
+
+    req.io.emit('invoice_updated', updatedInvoice);
     
     res.json(updatedInvoice);
   } catch (error) {
@@ -167,6 +169,9 @@ function deleteInvoice(req, res) {
     
     // Remover nota
     InvoiceModel.deleteInvoice(invoiceId);
+
+    // Emitir evento para WebSocket
+    req.io.emit('invoice_deleted', { id: invoiceId });
     
     res.json({ message: 'Nota excluída com sucesso' });
   } catch (error) {

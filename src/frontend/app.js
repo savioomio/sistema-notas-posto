@@ -24,6 +24,12 @@ let config = {};
 
 // Alternar entre abas
 function showTab(tabId) {
+  // Limpar eventos do dashboard anterior
+  if (document.querySelector('.tab[data-tab="dashboard"]').classList.contains('active')) {
+    const dashboard = require('./pages/dashboard');
+    dashboard.cleanup();
+  }
+
   // Remover classe active de todas as abas
   document.querySelectorAll('.tab').forEach(tab => {
     tab.classList.remove('active');
