@@ -110,6 +110,16 @@ function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_invoice_products_invoice_id ON invoice_products(invoice_id);
   `);
 
+  // Índices para a tabela invoices (garantir que todos estão criados)
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_invoices_client_id ON invoices(client_id);
+    CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
+    CREATE INDEX IF NOT EXISTS idx_invoices_due_date ON invoices(due_date);
+    CREATE INDEX IF NOT EXISTS idx_invoices_purchase_date ON invoices(purchase_date);
+    CREATE INDEX IF NOT EXISTS idx_invoices_status_due_date ON invoices(status, due_date);
+    CREATE INDEX IF NOT EXISTS idx_invoices_total_value ON invoices(total_value);
+  `);
+
   console.log('Banco de dados inicializado com sucesso!');
 }
 
