@@ -58,7 +58,6 @@ function getInvoiceById(id) {
   `).get(id);
 }
 
-
 // Adicionar nova função para contar notas
 function getInvoiceCount(filters = {}) {
   let sql = 'SELECT COUNT(*) as count FROM invoices WHERE 1=1';
@@ -154,11 +153,47 @@ function deleteInvoice(id) {
   }
 }
 
+// Obter notas por cliente com ordenação especial
+function getInvoicesByClientId(clientId, page = 1, limit = 10) {
+  const offset = (page - 1) * limit;
+  
+  // Ordenação: pendentes primeiro (por data decrescente), depois pagas (por data decrescente)
+  const invoices = db.prepare(`
+    SELECT i.*, c.name as client_name, c.document as client_document
+    FROM invoices i
+    JOIN clients c ON i.client_id = c.id
+    WHERE i.client_id = ?
+    ORDER BY 
+      CASE 
+        WHEN i.status = 'pendente' THEN 0
+        WHEN i.status = 'paga' THEN 1
+        ELSE 2
+      END,
+      i.purchase_date DESC
+    LIMIT ? OFFSET ?
+  `).all(clientId, limit, offset);
+  
+  const total = db.prepare(`
+    SELECT COUNT(*) as count 
+    FROM invoices 
+    WHERE client_id = ?
+  `).get(clientId).count;
+  
+  return {
+    data: invoices,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit)
+  };
+}
+
 module.exports = {
   getAllInvoices,
   getInvoiceById,
   createInvoice,
   updateInvoice,
   deleteInvoice,
-  getInvoiceCount // Nova função
+  getInvoiceCount,
+  getInvoicesByClientId
 };

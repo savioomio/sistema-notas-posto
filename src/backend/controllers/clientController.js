@@ -52,6 +52,10 @@ function getClientById(req, res) {
     // Adicionar status de notas vencidas
     client.has_overdue = ClientModel.clientHasOverdueInvoices(client.id);
     
+    // Adicionar estatísticas
+    const stats = ClientModel.getClientStatistics(client.id);
+    client.statistics = stats;
+    
     res.json(client);
   } catch (error) {
     res.status(500).json({ error: error.message });

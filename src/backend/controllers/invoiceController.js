@@ -179,10 +179,26 @@ function deleteInvoice(req, res) {
   }
 }
 
+// Obter notas de um cliente específico
+function getInvoicesByClient(req, res) {
+  try {
+    const clientId = req.params.clientId;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 30;
+    
+    const result = InvoiceModel.getInvoicesByClientId(clientId, page, limit);
+    
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   getAllInvoices,
   getInvoiceById,
   createInvoice,
   updateInvoice,
-  deleteInvoice
+  deleteInvoice,
+  getInvoicesByClient
 };

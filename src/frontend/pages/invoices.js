@@ -285,7 +285,7 @@ document.addEventListener('keydown', (e) => {
 
 // Copiar as funções de renderização de paginação do clients.js
 function renderPaginationControls(pagination) {
-  const container = document.getElementById('invoice-pagination-controls');
+  const container = document.getElementById('invoices-pagination-controls');
   if (!container) return;
   
   container.innerHTML = `
@@ -347,7 +347,7 @@ function renderPaginationControls(pagination) {
 }
 
 function setupInvoicePaginationEvents() {
-  const container = document.getElementById('invoice-pagination-controls');
+  const container = document.getElementById('invoices-pagination-controls');
   if (!container) return;
   
   const oldHandler = container.pagination_handler;
