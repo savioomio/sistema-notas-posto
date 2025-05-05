@@ -6,39 +6,50 @@ const { formatDateForInput } = require('../../assets/js/utils');
 
 // Estado global para clientes selecionados
 let selectedClient = null;
+let isModalOpening = false;
 
 // Abrir modal de nota
 async function openInvoiceModal(invoiceId = null, preselectedClientId = null) {
-  const modal = document.getElementById('invoice-modal');
-  const modalTitle = document.getElementById('invoice-modal-title');
-
-  // Limpar formulário primeiro
-  invoiceForm.clearInvoiceForm();
-  
-  // Garantir que selectedClient está null
-  selectedClient = null;
+  // Prevenir abertura múltipla
+  if (isModalOpening) return;
+  isModalOpening = true;
 
   try {
+    const modal = document.getElementById('invoice-modal');
+    const modalTitle = document.getElementById('invoice-modal-title');
+
+    // Limpar formulário primeiro
+    invoiceForm.clearInvoiceForm();
+    
+    // Garantir que selectedClient está null
+    selectedClient = null;
+
     if (invoiceId) {
       // Modo de edição
       modalTitle.textContent = 'Editar Nota de Venda';
 
-      // Carregar dados da nota
-      const invoice = await invoiceService.getInvoiceById(invoiceId);
-      
-      // Mostrar modal ANTES de configurar tudo
-      modal.classList.remove('hidden');
-      
-      // Pré-carregar cliente se edição
-      if (invoice.client_id) {
-        const client = await clientService.getClientById(invoice.client_id);
-        if (client) {
-          selectedClient = client;
-          updateClientDisplay(client);
+      try {
+        // Carregar dados da nota
+        const invoice = await invoiceService.getInvoiceById(invoiceId);
+        
+        // Mostrar modal ANTES de configurar tudo
+        modal.classList.remove('hidden');
+        
+        // Pré-carregar cliente se edição
+        if (invoice.client_id) {
+          const client = await clientService.getClientById(invoice.client_id);
+          if (client) {
+            selectedClient = client;
+            updateClientDisplay(client);
+          }
         }
+        
+        invoiceForm.fillInvoiceForm(invoice);
+      } catch (error) {
+        console.error('Erro ao carregar cliente:', error);
+        alert(`Erro ao carregar cliente: ${error.message}`);
+        return;
       }
-      
-      invoiceForm.fillInvoiceForm(invoice);
     } else {
       // Modo de criação
       modalTitle.textContent = 'Nova Nota de Venda';
@@ -57,14 +68,19 @@ async function openInvoiceModal(invoiceId = null, preselectedClientId = null) {
 
       // Se houver cliente pré-selecionado, carregar
       if (preselectedClientId) {
-        const client = await clientService.getClientById(preselectedClientId);
-        if (client) {
-          selectedClient = client;
-          updateClientDisplay(client);
+        try {
+          const client = await clientService.getClientById(preselectedClientId);
+          if (client) {
+            selectedClient = client;
+            updateClientDisplay(client);
+          }
+        } catch (error) {
+          console.error('Erro ao carregar cliente:', error);
         }
       }
 
-      // Adicionar um campo de produto vazio
+      // Garantir que começamos com apenas um campo de produto
+      document.getElementById('products-container').innerHTML = '';
       invoiceForm.addProductField();
     }
 
@@ -74,6 +90,11 @@ async function openInvoiceModal(invoiceId = null, preselectedClientId = null) {
   } catch (error) {
     console.error('Erro ao abrir modal de nota:', error);
     alert(`Erro ao abrir modal de nota: ${error.message}`);
+  } finally {
+    // Liberar o flag após um pequeno delay
+    setTimeout(() => {
+      isModalOpening = false;
+    }, 300);
   }
 }
 

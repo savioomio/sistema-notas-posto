@@ -121,16 +121,19 @@ function clearInvoiceForm() {
   document.getElementById('invoice-form').reset();
   document.getElementById('invoice-id').value = '';
   document.getElementById('invoice-client-id').value = ''; // Limpar ID do cliente
-  document.getElementById('products-container').innerHTML = '';
+  
+  // Limpar completamente o container de produtos
+  const productsContainer = document.getElementById('products-container');
+  productsContainer.innerHTML = '';
   
   // Limpar campo de busca
-  const clientSearch = document.getElementById('client-search');
+  const clientSearch = document.getElementById('invoice-client-search');
   if (clientSearch) {
     clientSearch.value = '';
   }
   
   // Limpar display do cliente
-  const clientDisplay = document.getElementById('selected-client-display');
+  const clientDisplay = document.getElementById('invoice-selected-client-display');
   if (clientDisplay) {
     clientDisplay.classList.add('hidden');
     clientDisplay.innerHTML = '';

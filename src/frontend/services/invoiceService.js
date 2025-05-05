@@ -27,10 +27,21 @@ async function deleteInvoice(id) {
   return api.request(`invoices/${id}`, 'DELETE');
 }
 
+// Obter notas por cliente ID
+async function getInvoicesByClient(clientId, page = 1, limit = 30) {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString()
+  });
+  
+  return api.request(`invoices/client/${clientId}?${params.toString()}`);
+}
+
 module.exports = {
   getAllInvoices,
   getInvoiceById,
   createInvoice,
   updateInvoice,
-  deleteInvoice
+  deleteInvoice,
+  getInvoicesByClient
 };

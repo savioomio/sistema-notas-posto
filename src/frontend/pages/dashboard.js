@@ -4,6 +4,7 @@ const socketService = require('../services/socketService');
 const { formatDate, formatCurrency, isOverdue } = require('../assets/js/utils');
 const { openClientModal } = require('../components/client/clientModal');
 const { openInvoiceModal } = require('../components/invoice/invoiceModal');
+const invoiceService = require('../services/invoiceService');
 
 // Estado da paginação
 let overdueClientsPage = 1;

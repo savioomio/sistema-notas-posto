@@ -174,6 +174,22 @@ function searchClients(query, limit = 10) {
   }
 }
 
+// Obter estatísticas do cliente
+function getClientStatistics(clientId) {
+  const stats = db.prepare(`
+    SELECT 
+      COUNT(*) as total_invoices,
+      SUM(CASE WHEN status = 'paga' THEN total_value ELSE 0 END) as total_paid_value,
+      SUM(CASE WHEN status = 'pendente' THEN total_value ELSE 0 END) as total_pending_value,
+      COUNT(CASE WHEN status = 'pendente' THEN 1 END) as pending_count,
+      MIN(purchase_date) as first_purchase_date
+    FROM invoices 
+    WHERE client_id = ?
+  `).get(clientId);
+  
+  return stats;
+}
+
 module.exports = {
   getAllClients,
   getClientById,
@@ -185,5 +201,6 @@ module.exports = {
   clientHasInvoices,
   clientHasOverdueInvoices,
   getClientCount,
-  searchClients
+  searchClients,
+  getClientStatistics
 };
