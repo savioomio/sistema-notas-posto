@@ -165,6 +165,8 @@ function renderInvoices(invoices) {
   } else {
     invoices.forEach(invoice => {
       const isInvoiceOverdue = invoice.status === 'pendente' && isOverdue(invoice.due_date);
+      // Adicionar tooltip para mostrar data de pagamento
+      const paymentInfo = invoice.payment_date ? `data-tooltip="Pago em: ${formatDate(invoice.payment_date)}"` : '';
 
       const row = document.createElement('tr');
       row.className = 'hover:bg-gray-50 transition-colors';
@@ -179,7 +181,7 @@ function renderInvoices(invoices) {
               ? 'bg-green-100 text-green-800' 
               : (isInvoiceOverdue 
                 ? 'bg-red-100 text-red-800' 
-                : 'bg-yellow-100 text-yellow-800')}">
+                : 'bg-yellow-100 text-yellow-800')}" ${paymentInfo}>
             ${invoice.status === 'paga' ? 'Paga' : (isInvoiceOverdue ? 'Vencida' : 'Pendente')}
           </span>
         </td>

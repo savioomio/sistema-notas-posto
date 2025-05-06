@@ -148,6 +148,9 @@ function renderPendingInvoices(result) {
   } else {
     result.data.forEach(invoice => {
       const isInvoiceOverdue = isOverdue(invoice.due_date);
+      // Adicionar tooltip para mostrar data de pagamento
+      const paymentInfo = invoice.payment_date ? `data-tooltip="Pago em: ${formatDate(invoice.payment_date)}"` : '';
+      
       const row = document.createElement('tr');
       row.className = 'hover:bg-gray-50 transition-colors';
       row.innerHTML = `
@@ -158,7 +161,7 @@ function renderPendingInvoices(result) {
           <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
             ${isInvoiceOverdue
           ? 'bg-red-100 text-red-800'
-          : 'bg-yellow-100 text-yellow-800'}">
+          : 'bg-yellow-100 text-yellow-800'}" ${paymentInfo}>
             ${isInvoiceOverdue ? 'Vencida' : 'Pendente'}
           </span>
         </td>
@@ -186,10 +189,10 @@ function renderPendingInvoices(result) {
 // Marcar nota como paga
 async function payInvoice(invoiceId) {
   try {
-    const invoice = await invoiceService.getInvoiceById(invoiceId);
-    invoice.status = 'paga';
-    await invoiceService.updateInvoice(invoiceId, invoice);
-    // WebSocket vai atualizar automaticamente
+    // Usar o novo endpoint para pagamento
+    await invoiceService.payInvoice(invoiceId);
+    // Recarregar dados
+    await loadDashboard();
   } catch (error) {
     console.error('Erro ao pagar nota:', error);
     alert(`Erro ao pagar nota: ${error.message}`);

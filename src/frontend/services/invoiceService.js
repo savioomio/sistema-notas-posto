@@ -37,11 +37,17 @@ async function getInvoicesByClient(clientId, page = 1, limit = 30) {
   return api.request(`invoices/client/${clientId}?${params.toString()}`);
 }
 
+// Pagar nota
+async function payInvoice(id) {
+  return api.request(`invoices/${id}/pay`, 'PUT');
+}
+
 module.exports = {
   getAllInvoices,
   getInvoiceById,
   createInvoice,
   updateInvoice,
   deleteInvoice,
-  getInvoicesByClient
+  getInvoicesByClient,
+  payInvoice
 };

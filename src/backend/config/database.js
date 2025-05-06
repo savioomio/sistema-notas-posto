@@ -84,6 +84,22 @@ function initDatabase() {
     )
   `);
 
+  // Adicionar coluna payment_date à tabela invoices (apenas se não existir)
+  try {
+    // Verificar se a coluna existe
+    const tableInfo = db.prepare("PRAGMA table_info(invoices)").all();
+    const columnExists = tableInfo.some(column => column.name === 'payment_date');
+    
+    if (!columnExists) {
+      console.log('Adicionando coluna payment_date à tabela invoices...');
+      db.exec(`ALTER TABLE invoices ADD COLUMN payment_date DATETIME`);
+    }
+  } catch (error) {
+    console.error('Erro ao adicionar coluna payment_date:', error);
+  }
+
+  console.log('Banco de dados inicializado com sucesso!');
+
   console.log('Banco de dados inicializado com sucesso!');
 
   // Adicionar índices para melhorar performance

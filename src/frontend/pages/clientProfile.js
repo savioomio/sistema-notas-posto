@@ -248,6 +248,8 @@ function renderClientInvoices(invoices, pagination) {
   } else {
     invoices.forEach(invoice => {
       const isInvoiceOverdue = invoice.status === 'pendente' && isOverdue(invoice.due_date);
+      // Adicionar tooltip para mostrar data de pagamento
+      const paymentInfo = invoice.payment_date ? `data-tooltip="Pago em: ${formatDate(invoice.payment_date)}"` : '';
 
       const row = document.createElement('tr');
       row.className = 'hover:bg-gray-50 transition-colors';
@@ -261,7 +263,7 @@ function renderClientInvoices(invoices, pagination) {
               ? 'bg-green-100 text-green-800' 
               : (isInvoiceOverdue 
                 ? 'bg-red-100 text-red-800' 
-                : 'bg-yellow-100 text-yellow-800')}">
+                : 'bg-yellow-100 text-yellow-800')}" ${paymentInfo}>
             ${invoice.status === 'paga' ? 'Paga' : (isInvoiceOverdue ? 'Vencida' : 'Pendente')}
           </span>
         </td>
@@ -380,9 +382,8 @@ window.navigateInvoicePage = function(page) {
 // Marcar nota como paga
 async function payInvoice(invoiceId) {
   try {
-    const invoice = await invoiceService.getInvoiceById(invoiceId);
-    invoice.status = 'paga';
-    await invoiceService.updateInvoice(invoiceId, invoice);
+    // Usar o novo endpoint para pagamento
+    await invoiceService.payInvoice(invoiceId);
     
     // Recarregar notas do cliente na página atual
     await loadClientInvoices(currentClientId, currentInvoicePage);
