@@ -1,6 +1,5 @@
 // src/frontend/pages/dashboard.js
 const dashboardService = require('../services/dashboardService');
-const socketService = require('../services/socketService');
 const { formatDate, formatCurrency, isOverdue } = require('../assets/js/utils');
 const { openClientModal } = require('../components/client/clientModal');
 const { openInvoiceModal } = require('../components/invoice/invoiceModal');
@@ -15,7 +14,7 @@ let isLoading = false;
 function showLoading() {
   const overdueTable = document.getElementById('overdue-clients').querySelector('tbody');
   const pendingTable = document.getElementById('pending-invoices').querySelector('tbody');
-  
+
   const loadingHtml = `
     <tr>
       <td colspan="4" class="px-6 py-8 text-sm text-gray-500 text-center">
@@ -26,7 +25,7 @@ function showLoading() {
       </td>
     </tr>
   `;
-  
+
   overdueTable.innerHTML = loadingHtml;
   pendingTable.innerHTML = loadingHtml;
 }
@@ -65,14 +64,14 @@ function renderPaginationControls(container, currentPage, totalPages, onPageChan
 }
 
 // Navegar para página de clientes vencidos
-window.navigateOverdueClients = function(page) {
+window.navigateOverdueClients = function (page) {
   if (page < 1) return;
   overdueClientsPage = page;
   loadDashboard();
 };
 
 // Navegar para página de notas pendentes
-window.navigatePendingInvoices = function(page) {
+window.navigatePendingInvoices = function (page) {
   if (page < 1) return;
   pendingInvoicesPage = page;
   loadDashboard();
@@ -81,22 +80,22 @@ window.navigatePendingInvoices = function(page) {
 // Carregar dashboard
 async function loadDashboard() {
   if (isLoading) return;
-  
+
   try {
     isLoading = true;
     showLoading();
-    
+
     const data = await dashboardService.getDashboardData(overdueClientsPage, pendingInvoicesPage);
-    
+
     // Atualizar totais
     updateTotals(data.totals);
-    
+
     // Renderizar clientes com notas vencidas
     renderOverdueClients(data.overdue_clients);
-    
+
     // Renderizar notas pendentes
     renderPendingInvoices(data.pending_invoices);
-    
+
   } catch (error) {
     console.error('Erro ao carregar dashboard:', error);
     alert('Erro ao carregar dashboard: ' + error.message);
@@ -131,7 +130,7 @@ function renderOverdueClients(result) {
       overdueClientsTable.appendChild(row);
     });
   }
-  
+
   // Renderizar paginação
   const paginationContainer = document.getElementById('overdue-clients-pagination');
   renderPaginationControls(paginationContainer, result.page, result.totalPages, 'navigateOverdueClients');
@@ -157,9 +156,9 @@ function renderPendingInvoices(result) {
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(invoice.total_value)}</td>
         <td class="px-6 py-4 whitespace-nowrap">
           <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-            ${isInvoiceOverdue 
-              ? 'bg-red-100 text-red-800' 
-              : 'bg-yellow-100 text-yellow-800'}">
+            ${isInvoiceOverdue
+          ? 'bg-red-100 text-red-800'
+          : 'bg-yellow-100 text-yellow-800'}">
             ${isInvoiceOverdue ? 'Vencida' : 'Pendente'}
           </span>
         </td>
@@ -175,37 +174,13 @@ function renderPendingInvoices(result) {
       pendingInvoicesTable.appendChild(row);
     });
   }
-  
+
   // Renderizar paginação
   const paginationContainer = document.getElementById('pending-invoices-pagination');
   renderPaginationControls(paginationContainer, result.page, result.totalPages, 'navigatePendingInvoices');
-  
+
   // Configurar eventos
   setupDashboardEvents();
-}
-
-// Configurar WebSocket
-function setupWebSocket() {
-  const apiUrl = localStorage.getItem('apiUrl') || 'http://localhost:3000';
-  socketService.connect(apiUrl);
-  
-  // Escutar eventos relevantes para o dashboard
-  socketService.on('client_created', () => loadDashboard());
-  socketService.on('client_updated', () => loadDashboard());
-  socketService.on('client_deleted', () => loadDashboard());
-  socketService.on('invoice_created', () => loadDashboard());
-  socketService.on('invoice_updated', () => loadDashboard());
-  socketService.on('invoice_deleted', () => loadDashboard());
-}
-
-// Remover listeners WebSocket
-function removeWebSocketListeners() {
-  socketService.off('client_created');
-  socketService.off('client_updated');
-  socketService.off('client_deleted');
-  socketService.off('invoice_created');
-  socketService.off('invoice_updated');
-  socketService.off('invoice_deleted');
 }
 
 // Marcar nota como paga
@@ -257,14 +232,11 @@ function setupInitialDashboardEvents() {
   document.getElementById('add-invoice-btn').addEventListener('click', () => {
     openInvoiceModal();
   });
-  
-  // Configurar WebSocket quando o dashboard estiver ativo
-  setupWebSocket();
 }
 
 // Remover eventos quando sair do dashboard
 function cleanup() {
-  removeWebSocketListeners();
+  
 }
 
 module.exports = {
