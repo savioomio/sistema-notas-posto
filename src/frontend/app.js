@@ -5,6 +5,7 @@ const { ipcRenderer } = require('electron');
 // Importar serviços
 const api = require('./services/api');
 const authService = require('./services/authService');
+const socketService = require('./services/socketService');
 
 // Importar páginas
 const dashboard = require('./pages/dashboard');
@@ -90,19 +91,132 @@ function showApp(isAuthenticated) {
   if (isAuthenticated) {
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('main-app').classList.remove('hidden');
+    
+    // Inicializar WebSocket SOMENTE após login bem-sucedido
+    initWebSocket(config);
+    
     // Inicialmente mostrar o dashboard
     showTab('dashboard');
   } else {
     document.getElementById('login-screen').classList.remove('hidden');
     document.getElementById('main-app').classList.add('hidden');
     document.getElementById('password').value = '';
+    
+    // Desconectar WebSocket se existir
+    socketService.disconnect();
   }
 }
-
 // Expor função para mostrar tela de login (para o logout)
 window.showLoginScreen = function() {
   showApp(false);
 };
+
+// Inicializar WebSocket global
+function initWebSocket(config) {
+  // Verificar se estamos autenticados
+  if (!localStorage.getItem('token')) {
+    console.log('WebSocket: Inicialização ignorada - usuário não autenticado');
+    return null;
+  }
+
+  let wsUrl;
+  if (config.runServer) {
+    wsUrl = `http://localhost:${config.serverPort}`;
+  } else {
+    wsUrl = `http://${config.serverIp}:${config.serverPort}`;
+  }
+  
+  console.log('Inicializando WebSocket:', wsUrl);
+  
+  // Conectar WebSocket
+  const socket = socketService.connect(wsUrl);
+  
+  // Só configurar handlers se a conexão for bem-sucedida
+  if (socket) {
+    setupGlobalWebSocketHandlers();
+  }
+  
+  return socket;
+}
+
+// Handlers globais para eventos WebSocket
+function setupGlobalWebSocketHandlers() {
+  // Eventos de cliente
+  socketService.on('client_created', handleGlobalClientUpdate);
+  socketService.on('client_updated', handleGlobalClientUpdate);
+  socketService.on('client_deleted', handleGlobalClientUpdate);
+  
+  // Eventos de nota
+  socketService.on('invoice_created', handleGlobalInvoiceUpdate);
+  socketService.on('invoice_updated', handleGlobalInvoiceUpdate);
+  socketService.on('invoice_deleted', handleGlobalInvoiceUpdate);
+}
+
+// Handler para atualizações de clientes
+function handleGlobalClientUpdate(data) {
+  console.log('Atualização de cliente recebida via WebSocket:', data);
+  
+  // Identificar página ativa
+  const activeTab = document.querySelector('.tab.active');
+  if (!activeTab) return;
+  
+  const tabName = activeTab.dataset.tab;
+  
+  // Atualizar página atual conforme necessário
+  if (tabName === 'dashboard') {
+    if (typeof dashboard.loadDashboard === 'function') {
+      dashboard.loadDashboard();
+    }
+  } 
+  else if (tabName === 'clients') {
+    if (typeof clients.loadClients === 'function') {
+      clients.loadClients();
+    }
+  }
+  
+  // Verificar se estamos no perfil do cliente
+  if (!document.getElementById('client-profile').classList.contains('hidden')) {
+    const profileClientId = document.getElementById('profile-client-id').textContent;
+    if (profileClientId && (data.id == profileClientId || data.client_id == profileClientId)) {
+      if (typeof clientProfile.loadClientProfile === 'function') {
+        clientProfile.loadClientProfile(profileClientId);
+      }
+    }
+  }
+}
+
+// Handler para atualizações de notas
+function handleGlobalInvoiceUpdate(data) {
+  console.log('Atualização de nota recebida via WebSocket:', data);
+  
+  // Identificar página ativa
+  const activeTab = document.querySelector('.tab.active');
+  if (!activeTab) return;
+  
+  const tabName = activeTab.dataset.tab;
+  
+  // Atualizar página atual conforme necessário
+  if (tabName === 'dashboard') {
+    if (typeof dashboard.loadDashboard === 'function') {
+      dashboard.loadDashboard();
+    }
+  } 
+  else if (tabName === 'invoices') {
+    if (typeof invoices.loadInvoices === 'function') {
+      invoices.loadInvoices();
+    }
+  }
+  
+  // Verificar se estamos no perfil do cliente
+  if (!document.getElementById('client-profile').classList.contains('hidden')) {
+    const profileClientId = document.getElementById('profile-client-id').textContent;
+    if (profileClientId && data.client_id == profileClientId) {
+      if (typeof clientProfile.loadClientProfile === 'function') {
+        clientProfile.loadClientProfile(profileClientId);
+      }
+    }
+  }
+}
 
 // ---------- INICIALIZAÇÃO ----------
 
@@ -148,7 +262,7 @@ function setupEvents() {
     
     try {
       await authService.login(password);
-      showApp(true);
+      showApp(true); // Isso agora vai inicializar o WebSocket também
     } catch (error) {
       const utils = require('./assets/js/utils');
       utils.showAlert(error.message || 'Senha incorreta', 'error', loginError);
@@ -181,14 +295,18 @@ function setupEvents() {
   // Receber atualizações de configuração do processo principal
   ipcRenderer.on('config-loaded', (event, newConfig) => {
     config = newConfig;
-
+  
     // Atualizar URL da API
     if (config.runServer) {
       api.setApiUrl(`http://localhost:${config.serverPort}`);
     } else {
       api.setApiUrl(`http://${config.serverIp}:${config.serverPort}`);
     }
-
+  
+    // Reinicializar WebSocket com novas configurações
+    socketService.disconnect(); // Desconectar o antigo
+    initWebSocket(config);     // Conectar com novas configurações
+  
     settings.updateServerStatus();
   });
 }
