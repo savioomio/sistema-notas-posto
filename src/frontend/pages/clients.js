@@ -2,6 +2,7 @@
 const clientService = require('../services/clientService');
 const { formatCurrency } = require('../assets/js/utils');
 const { openClientModal } = require('../components/client/clientModal');
+const notification = require('../components/notification');
 
 // Armazenar clientes para filtragem
 let currentPage = 1;
@@ -69,7 +70,7 @@ async function loadClients(page = 1) {
     
   } catch (error) {
     console.error('Erro ao carregar clientes:', error);
-    alert('Erro ao carregar clientes: ' + error.message);
+    notification.error('Erro ao carregar clientes: ' + error.message);
   }
 }
 
@@ -439,7 +440,7 @@ async function deleteClient(clientId) {
     }
   } catch (error) {
     console.error('Erro ao excluir cliente:', error);
-    alert('Erro ao excluir cliente: ' + error.message);
+    notification.error('Erro ao excluir cliente: ' + error.message);
   }
 }
 

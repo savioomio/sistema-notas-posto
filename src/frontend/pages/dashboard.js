@@ -4,6 +4,7 @@ const { formatDate, formatCurrency, isOverdue } = require('../assets/js/utils');
 const { openClientModal } = require('../components/client/clientModal');
 const { openInvoiceModal } = require('../components/invoice/invoiceModal');
 const invoiceService = require('../services/invoiceService');
+const notification = require('../components/notification');
 
 // Estado da paginação
 let overdueClientsPage = 1;
@@ -98,7 +99,7 @@ async function loadDashboard() {
 
   } catch (error) {
     console.error('Erro ao carregar dashboard:', error);
-    alert('Erro ao carregar dashboard: ' + error.message);
+    notification.error('Erro ao carregar dashboard: ' + error.message);
   } finally {
     isLoading = false;
   }
@@ -195,7 +196,7 @@ async function payInvoice(invoiceId) {
     await loadDashboard();
   } catch (error) {
     console.error('Erro ao pagar nota:', error);
-    alert(`Erro ao pagar nota: ${error.message}`);
+    notification.error(`Erro ao pagar nota: ${error.message}`);
   }
 }
 

@@ -17,6 +17,7 @@ const clientProfile = require('./pages/clientProfile');
 // Importar componentes
 const clientModal = require('./components/client/clientModal');
 const invoiceModal = require('./components/invoice/invoiceModal');
+const notification = require('./components/notification');
 
 // Configurações
 let config = {};
@@ -244,6 +245,7 @@ async function initApp() {
     setInterval(settings.updateServerStatus, 5000);
   } catch (error) {
     console.error('Erro ao inicializar aplicação:', error);
+    notification.error('Erro ao inicializar aplicação: ' + error.message);
   }
 }
 

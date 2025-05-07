@@ -3,6 +3,7 @@ const clientService = require('../services/clientService');
 const invoiceService = require('../services/invoiceService');
 const { formatDate, formatCurrency, isOverdue } = require('../assets/js/utils');
 const { openInvoiceModal } = require('../components/invoice/invoiceModal');
+const notification = require('../components/notification');
 
 // Variável para armazenar o ID do cliente atual
 let currentClientId = null;
@@ -78,7 +79,7 @@ async function loadClientProfile(clientId) {
 
   } catch (error) {
     console.error('Erro ao carregar perfil do cliente:', error);
-    alert('Erro ao carregar perfil do cliente: ' + error.message);
+    notification.error('Erro ao carregar perfil do cliente: ' + error.message);
   }
 }
 
@@ -277,7 +278,7 @@ async function generatePDF() {
 
   } catch (error) {
     console.error('Erro ao gerar PDF:', error);
-    alert('Erro ao gerar relatório: ' + error.message);
+    notification.error('Erro ao gerar relatório: ' + error.message);
   }
 }
 
@@ -462,7 +463,7 @@ async function payInvoice(invoiceId) {
     }
   } catch (error) {
     console.error('Erro ao pagar nota:', error);
-    alert(`Erro ao pagar nota: ${error.message}`);
+    notification.error(`Erro ao pagar nota: ${error.message}`);
   }
 }
 

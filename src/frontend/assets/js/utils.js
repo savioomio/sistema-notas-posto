@@ -1,5 +1,6 @@
 // src/frontend/assets/js/utils.js
 // Funções utilitárias
+const notification = require('../../components/notification');
 
 // Formatar data
 function formatDate(dateString) {
@@ -37,20 +38,30 @@ function isOverdue(dateString) {
 
 // Mostrar alerta
 function showAlert(message, type, container) {
-  container.textContent = message;
-
-  if (type === 'success') {
-    container.className = 'mt-3 p-3 bg-green-100 text-green-800 rounded-lg';
+  // Manter a versão antiga para compatibilidade com código existente
+  if (container) {
+    container.textContent = message;
+    
+    if (type === 'success') {
+      container.className = 'mt-3 p-3 bg-green-100 text-green-800 rounded-lg';
+    } else {
+      container.className = 'mt-3 p-3 bg-red-100 text-red-800 rounded-lg';
+    }
+    
+    container.classList.remove('hidden');
+    
+    // Esconder após 5 segundos
+    setTimeout(() => {
+      container.classList.add('hidden');
+    }, 5000);
   } else {
-    container.className = 'mt-3 p-3 bg-red-100 text-red-800 rounded-lg';
+    // Usar o novo sistema de notificações quando o container não for fornecido
+    if (type === 'success') {
+      notification.success(message);
+    } else {
+      notification.error(message);
+    }
   }
-
-  container.classList.remove('hidden');
-
-  // Esconder após 5 segundos
-  setTimeout(() => {
-    container.classList.add('hidden');
-  }, 5000);
 }
 
 module.exports = {

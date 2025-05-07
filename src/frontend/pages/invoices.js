@@ -2,6 +2,7 @@
 const invoiceService = require('../services/invoiceService');
 const { formatDate, formatCurrency, isOverdue } = require('../assets/js/utils');
 const { openInvoiceModal } = require('../components/invoice/invoiceModal');
+const notification = require('../components/notification');
 
 // Armazenar dados para paginação
 let currentPage = 1;
@@ -58,7 +59,7 @@ async function loadInvoices(page = 1) {
     
   } catch (error) {
     console.error('Erro ao carregar notas:', error);
-    alert('Erro ao carregar notas: ' + error.message);
+    notification.error('Erro ao carregar notas: ' + error.message);
   }
 }
 
@@ -219,7 +220,7 @@ async function deleteInvoice(invoiceId) {
     }
   } catch (error) {
     console.error('Erro ao excluir nota:', error);
-    alert('Erro ao excluir nota: ' + error.message);
+    notification.error('Erro ao excluir nota: ' + error.message);
   }
 }
 
