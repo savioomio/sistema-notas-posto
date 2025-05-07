@@ -301,7 +301,7 @@ async function loadClientInvoices(clientId, page = 1) {
     renderClientInvoices(clientInvoices, response);
   } catch (error) {
     console.error('Erro ao carregar notas do cliente:', error);
-    alert('Erro ao carregar notas do cliente: ' + error.message);
+    notification.error('Erro ao carregar notas do cliente: ' + error.message);
   }
 }
 

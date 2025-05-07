@@ -38,7 +38,7 @@ function isOverdue(dateString) {
 
 // Mostrar alerta
 function showAlert(message, type, container) {
-  // Manter a versão antiga para compatibilidade com código existente
+  // Se um container for fornecido, manter o comportamento atual
   if (container) {
     container.textContent = message;
     
@@ -55,11 +55,15 @@ function showAlert(message, type, container) {
       container.classList.add('hidden');
     }, 5000);
   } else {
-    // Usar o novo sistema de notificações quando o container não for fornecido
+    // Usar o sistema de notificação personalizado quando não houver container
     if (type === 'success') {
       notification.success(message);
-    } else {
+    } else if (type === 'error') {
       notification.error(message);
+    } else if (type === 'warning') {
+      notification.warning(message);
+    } else {
+      notification.info(message);
     }
   }
 }
