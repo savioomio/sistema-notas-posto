@@ -1,6 +1,7 @@
 // src/frontend/components/client/clientModal.js
 const clientForm = require('./clientForm');
 const clientService = require('../../services/clientService');
+const notification = require('../../components/notification');
 
 // Abrir modal de cliente
 async function openClientModal(clientId = null) {
@@ -20,7 +21,7 @@ async function openClientModal(clientId = null) {
       clientForm.fillClientForm(client);
     } catch (error) {
       console.error('Erro ao carregar cliente:', error);
-      alert(`Erro ao carregar cliente: ${error.message}`);
+      notification.error(`Erro ao carregar cliente: ${error.message}`);
       return;
     }
   } else {
@@ -107,10 +108,10 @@ async function saveClient(event) {
     }
 
     // Mostrar mensagem de sucesso
-    alert('Cliente salvo com sucesso!');
+    notification.success('Cliente salvo com sucesso!');
   } catch (error) {
     console.error('Erro ao salvar cliente:', error);
-    alert(`Erro ao salvar cliente: ${error.message}`);
+    notification.error(`Erro ao salvar cliente: ${error.message}`);
   }
 }
 

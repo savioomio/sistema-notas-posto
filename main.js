@@ -148,3 +148,25 @@ app.on('before-quit', () => {
     server.close();
   }
 });
+
+// Handler para ler imagens
+ipcMain.handle('read-image', (event, imagePath) => {
+  try {
+    // Usar caminho absoluto do aplicativo como base
+    const appPath = app.getAppPath();
+    const fullPath = path.join(appPath, imagePath);
+    
+    console.log('Tentando ler imagem de:', fullPath);
+    
+    if (!fs.existsSync(fullPath)) {
+      console.error('Arquivo não encontrado:', fullPath);
+      return null;
+    }
+    
+    const imageBuffer = fs.readFileSync(fullPath);
+    return `data:image/png;base64,${imageBuffer.toString('base64')}`;
+  } catch (error) {
+    console.error('Erro ao ler imagem:', error);
+    return null;
+  }
+});

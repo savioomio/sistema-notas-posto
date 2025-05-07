@@ -2,6 +2,8 @@
 const clientService = require('../services/clientService');
 const { formatCurrency } = require('../assets/js/utils');
 const { openClientModal } = require('../components/client/clientModal');
+const notification = require('../components/notification');
+const confirmation = require('../components/confirmation');
 
 // Armazenar clientes para filtragem
 let currentPage = 1;
@@ -69,7 +71,7 @@ async function loadClients(page = 1) {
     
   } catch (error) {
     console.error('Erro ao carregar clientes:', error);
-    alert('Erro ao carregar clientes: ' + error.message);
+    notification.error('Erro ao carregar clientes: ' + error.message);
   }
 }
 
@@ -424,23 +426,22 @@ function renderClients(clients) {
 
 // Excluir cliente
 async function deleteClient(clientId) {
-  if (!confirm('Tem certeza que deseja excluir este cliente?')) {
-    return;
-  }
+  // Substituir o confirm nativo por nossa versão personalizada
+  confirmation.danger('Tem certeza que deseja excluir este cliente?', async () => {
+    try {
+      await clientService.deleteClient(clientId);
+      await loadClients();
 
-  try {
-    await clientService.deleteClient(clientId);
-    await loadClients();
-
-    // Recarregar dashboard se estiver visível
-    if (document.getElementById('dashboard').classList.contains('active')) {
-      const dashboard = require('./dashboard');
-      await dashboard.loadDashboard();
+      // Recarregar dashboard se estiver visível
+      if (document.getElementById('dashboard').classList.contains('active')) {
+        const dashboard = require('./dashboard');
+        await dashboard.loadDashboard();
+      }
+    } catch (error) {
+      console.error('Erro ao excluir cliente:', error);
+      notification.error('Erro ao excluir cliente: ' + error.message);
     }
-  } catch (error) {
-    console.error('Erro ao excluir cliente:', error);
-    alert('Erro ao excluir cliente: ' + error.message);
-  }
+  });
 }
 
 // Configurar eventos da página de clientes

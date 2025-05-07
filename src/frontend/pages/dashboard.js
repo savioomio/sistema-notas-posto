@@ -4,6 +4,8 @@ const { formatDate, formatCurrency, isOverdue } = require('../assets/js/utils');
 const { openClientModal } = require('../components/client/clientModal');
 const { openInvoiceModal } = require('../components/invoice/invoiceModal');
 const invoiceService = require('../services/invoiceService');
+const notification = require('../components/notification');
+const confirmation = require('../components/confirmation');
 
 // Estado da paginação
 let overdueClientsPage = 1;
@@ -98,7 +100,7 @@ async function loadDashboard() {
 
   } catch (error) {
     console.error('Erro ao carregar dashboard:', error);
-    alert('Erro ao carregar dashboard: ' + error.message);
+    notification.error('Erro ao carregar dashboard: ' + error.message);
   } finally {
     isLoading = false;
   }
@@ -148,6 +150,9 @@ function renderPendingInvoices(result) {
   } else {
     result.data.forEach(invoice => {
       const isInvoiceOverdue = isOverdue(invoice.due_date);
+      // Adicionar tooltip para mostrar data de pagamento
+      const paymentInfo = invoice.payment_date ? `data-tooltip="Pago em: ${formatDate(invoice.payment_date)}"` : '';
+      
       const row = document.createElement('tr');
       row.className = 'hover:bg-gray-50 transition-colors';
       row.innerHTML = `
@@ -158,7 +163,7 @@ function renderPendingInvoices(result) {
           <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
             ${isInvoiceOverdue
           ? 'bg-red-100 text-red-800'
-          : 'bg-yellow-100 text-yellow-800'}">
+          : 'bg-yellow-100 text-yellow-800'}" ${paymentInfo}>
             ${isInvoiceOverdue ? 'Vencida' : 'Pendente'}
           </span>
         </td>
@@ -183,17 +188,19 @@ function renderPendingInvoices(result) {
   setupDashboardEvents();
 }
 
-// Marcar nota como paga
+// Função para pagar nota no dashboard
 async function payInvoice(invoiceId) {
-  try {
-    const invoice = await invoiceService.getInvoiceById(invoiceId);
-    invoice.status = 'paga';
-    await invoiceService.updateInvoice(invoiceId, invoice);
-    // WebSocket vai atualizar automaticamente
-  } catch (error) {
-    console.error('Erro ao pagar nota:', error);
-    alert(`Erro ao pagar nota: ${error.message}`);
-  }
+  // IMPORTANTE: Remover o try/catch aqui e colocar dentro do callback
+  confirmation.confirm('Deseja marcar esta nota como paga?', async () => {
+    try {
+      // Código executado quando confirmado
+      await invoiceService.payInvoice(invoiceId);
+      await loadDashboard();
+    } catch (error) {
+      console.error('Erro ao pagar nota:', error);
+      notification.error(`Erro ao pagar nota: ${error.message}`);
+    }
+  });
 }
 
 // Configurar eventos do dashboard
@@ -216,9 +223,7 @@ function setupDashboardEvents() {
   document.querySelectorAll('#pending-invoices .pay-invoice').forEach(button => {
     button.addEventListener('click', (event) => {
       const invoiceId = event.target.dataset.id;
-      if (confirm('Deseja marcar esta nota como paga?')) {
-        payInvoice(invoiceId);
-      }
+      payInvoice(invoiceId);
     });
   });
 }

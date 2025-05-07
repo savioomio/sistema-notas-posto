@@ -179,6 +179,38 @@ function deleteInvoice(req, res) {
   }
 }
 
+// Pagar nota
+function payInvoice(req, res) {
+  try {
+    const invoiceId = req.params.id;
+    
+    // Verificar se a nota existe
+    const existingInvoice = InvoiceModel.getInvoiceById(invoiceId);
+    if (!existingInvoice) {
+      return res.status(404).json({ error: 'Nota não encontrada' });
+    }
+    
+    // Definir a data de pagamento como agora
+    const payment_date = new Date().toISOString();
+    
+    // Atualizar a nota para paga com a data de pagamento
+    InvoiceModel.updateInvoice(invoiceId, {
+      ...existingInvoice,
+      status: 'paga',
+      payment_date
+    });
+    
+    const updatedInvoice = InvoiceModel.getInvoiceById(invoiceId);
+    
+    // Emitir evento para WebSocket
+    req.io.emit('invoice_updated', updatedInvoice);
+    
+    res.json(updatedInvoice);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
 // Obter notas de um cliente específico
 function getInvoicesByClient(req, res) {
   try {
@@ -200,5 +232,6 @@ module.exports = {
   createInvoice,
   updateInvoice,
   deleteInvoice,
-  getInvoicesByClient
+  getInvoicesByClient,
+  payInvoice
 };

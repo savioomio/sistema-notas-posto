@@ -3,6 +3,7 @@ const { ipcRenderer } = require('electron');
 const api = require('../services/api');
 const authService = require('../services/authService');
 const { showAlert } = require('../assets/js/utils');
+const notification = require('../components/notification');
 
 // Função de logout
 function logout() {
@@ -31,7 +32,7 @@ async function loadSettings() {
     await updateServerStatus();
   } catch (error) {
     console.error('Erro ao carregar configurações:', error);
-    alert('Erro ao carregar configurações: ' + error.message);
+    notification.error('Erro ao carregar configurações: ' + error.message);
   }
 }
 
@@ -66,10 +67,10 @@ async function saveNetworkConfig() {
     // Atualizar status do servidor
     await updateServerStatus();
 
-    alert('Configurações salvas com sucesso!');
+    notification.success('Configurações salvas com sucesso!');
   } catch (error) {
     console.error('Erro ao salvar configurações:', error);
-    alert('Erro ao salvar configurações: ' + error.message);
+    notification.error('Erro ao salvar configurações: ' + error.message);
   }
 }
 

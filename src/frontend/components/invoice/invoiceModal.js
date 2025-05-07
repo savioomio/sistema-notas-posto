@@ -3,6 +3,7 @@ const invoiceForm = require('./invoiceForm');
 const invoiceService = require('../../services/invoiceService');
 const clientService = require('../../services/clientService');
 const { formatDateForInput } = require('../../assets/js/utils');
+const notification = require('../../components/notification');
 
 // Estado global para clientes selecionados
 let selectedClient = null;
@@ -47,7 +48,7 @@ async function openInvoiceModal(invoiceId = null, preselectedClientId = null) {
         invoiceForm.fillInvoiceForm(invoice);
       } catch (error) {
         console.error('Erro ao carregar cliente:', error);
-        alert(`Erro ao carregar cliente: ${error.message}`);
+        notification.error(`Erro ao carregar cliente: ${error.message}`);
         return;
       }
     } else {
@@ -366,10 +367,10 @@ async function saveInvoice(event) {
     }
 
     // Mostrar mensagem de sucesso
-    alert('Nota salva com sucesso!');
+    notification.success('Nota salva com sucesso!');
   } catch (error) {
     console.error('Erro ao salvar nota:', error);
-    alert(`Erro ao salvar nota: ${error.message}`);
+    notification.error(`Erro ao salvar nota: ${error.message}`);
   }
 }
 

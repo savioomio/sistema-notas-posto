@@ -7,7 +7,8 @@ const {
   createInvoice, 
   updateInvoice, 
   deleteInvoice,
-  getInvoicesByClient 
+  getInvoicesByClient,
+  payInvoice
 } = require('../controllers/invoiceController');
 const { authenticateToken } = require('../middlewares/auth');
 
@@ -18,5 +19,6 @@ router.post('/invoices', authenticateToken, createInvoice);
 router.put('/invoices/:id', authenticateToken, updateInvoice);
 router.delete('/invoices/:id', authenticateToken, deleteInvoice);
 router.get('/invoices/client/:clientId', authenticateToken, getInvoicesByClient);
+router.put('/invoices/:id/pay', authenticateToken, payInvoice); 
 
 module.exports = router;

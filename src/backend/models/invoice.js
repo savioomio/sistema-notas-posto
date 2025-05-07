@@ -78,9 +78,49 @@ function getInvoiceCount(filters = {}) {
   return result.count;
 }
 
+// Atualizar uma nota
+function updateInvoice(id, invoiceData) {
+  const { client_id, purchase_date, due_date, status, total_value, payment_date } = invoiceData;
+  
+  // Iniciar transação
+  db.prepare('BEGIN TRANSACTION').run();
+  
+  try {
+    // Atualizar a nota
+    let sql, params;
+    
+    if (payment_date !== undefined) {
+      sql = `
+        UPDATE invoices 
+        SET client_id = ?, purchase_date = ?, due_date = ?, status = ?, total_value = ?, payment_date = ?
+        WHERE id = ?
+      `;
+      params = [client_id, purchase_date, due_date, status, total_value, payment_date, id];
+    } else {
+      sql = `
+        UPDATE invoices 
+        SET client_id = ?, purchase_date = ?, due_date = ?, status = ?, total_value = ?
+        WHERE id = ?
+      `;
+      params = [client_id, purchase_date, due_date, status, total_value, id];
+    }
+    
+    db.prepare(sql).run(...params);
+    
+    // Finalizar transação
+    db.prepare('COMMIT').run();
+    
+    return id;
+  } catch (error) {
+    // Reverter transação em caso de erro
+    db.prepare('ROLLBACK').run();
+    throw error;
+  }
+}
+
 // Criar uma nova nota
 function createInvoice(invoiceData) {
-  const { client_id, purchase_date, due_date, status, total_value } = invoiceData;
+  const { client_id, purchase_date, due_date, status, total_value, payment_date } = invoiceData;
   
   // Iniciar transação
   db.prepare('BEGIN TRANSACTION').run();
@@ -89,10 +129,23 @@ function createInvoice(invoiceData) {
     // Inserir a nota
     const purchaseDate = purchase_date || new Date().toISOString();
     
-    const result = db.prepare(`
-      INSERT INTO invoices (client_id, purchase_date, due_date, status, total_value)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(client_id, purchaseDate, due_date, status, total_value);
+    let sql, params;
+    
+    if (payment_date !== undefined) {
+      sql = `
+        INSERT INTO invoices (client_id, purchase_date, due_date, status, total_value, payment_date)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `;
+      params = [client_id, purchaseDate, due_date, status, total_value, payment_date];
+    } else {
+      sql = `
+        INSERT INTO invoices (client_id, purchase_date, due_date, status, total_value)
+        VALUES (?, ?, ?, ?, ?)
+      `;
+      params = [client_id, purchaseDate, due_date, status, total_value];
+    }
+    
+    const result = db.prepare(sql).run(...params);
     
     const invoiceId = result.lastInsertRowid;
     
@@ -100,32 +153,6 @@ function createInvoice(invoiceData) {
     db.prepare('COMMIT').run();
     
     return invoiceId;
-  } catch (error) {
-    // Reverter transação em caso de erro
-    db.prepare('ROLLBACK').run();
-    throw error;
-  }
-}
-
-// Atualizar uma nota
-function updateInvoice(id, invoiceData) {
-  const { client_id, purchase_date, due_date, status, total_value } = invoiceData;
-  
-  // Iniciar transação
-  db.prepare('BEGIN TRANSACTION').run();
-  
-  try {
-    // Atualizar a nota
-    db.prepare(`
-      UPDATE invoices 
-      SET client_id = ?, purchase_date = ?, due_date = ?, status = ?, total_value = ?
-      WHERE id = ?
-    `).run(client_id, purchase_date, due_date, status, total_value, id);
-    
-    // Finalizar transação
-    db.prepare('COMMIT').run();
-    
-    return id;
   } catch (error) {
     // Reverter transação em caso de erro
     db.prepare('ROLLBACK').run();
