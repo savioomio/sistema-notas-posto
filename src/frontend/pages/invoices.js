@@ -180,10 +180,10 @@ function renderInvoices(invoices) {
         <td class="px-6 py-4 whitespace-nowrap">
           <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
             ${invoice.status === 'paga'
-                ? 'bg-green-100 text-green-800'
-                : (isInvoiceOverdue
-                  ? 'bg-red-100 text-red-800'
-                  : 'bg-yellow-100 text-yellow-800')}" ${paymentInfo}>
+          ? 'bg-green-100 text-green-800'
+          : (isInvoiceOverdue
+            ? 'bg-red-100 text-red-800'
+            : 'bg-yellow-100 text-yellow-800')}" ${paymentInfo}>
             ${invoice.status === 'paga' ? 'Paga' : (isInvoiceOverdue ? 'Vencida' : 'Pendente')}
           </span>
         </td>
@@ -192,7 +192,7 @@ function renderInvoices(invoices) {
             Editar
           </button>
           ${invoice.status !== 'paga' ?
-                `<button class="pay-invoice mr-2 px-3 py-1 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors" data-id="${invoice.id}">
+          `<button class="pay-invoice mr-2 px-3 py-1 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors" data-id="${invoice.id}">
               Pagar
             </button>` : ''}
           <button class="delete-invoice px-3 py-1 rounded-full bg-red-100 text-red-700 hover:bg-red-200 transition-colors" data-id="${invoice.id}">
@@ -447,10 +447,10 @@ function setupInitialInvoicesEvents() {
 }
 
 async function payInvoice(invoiceId) {
-  try {
-    // Substituir o confirm nativo por nossa versão personalizada
-    confirmation.confirm('Deseja marcar esta nota como paga?', async () => {
-      // Código executado quando confirmado
+
+  confirmation.confirm('Deseja marcar esta nota como paga?', async () => {
+    try {
+      // Substituir o confirm nativo por nossa versão personalizada      // Código executado quando confirmado
       await invoiceService.payInvoice(invoiceId);
 
       // Recarregar notas na página atual
@@ -461,11 +461,12 @@ async function payInvoice(invoiceId) {
         const dashboard = require('./dashboard');
         await dashboard.loadDashboard();
       }
-    });
-  } catch (error) {
-    console.error('Erro ao pagar nota:', error);
-    notification.error(`Erro ao pagar nota: ${error.message}`);
-  }
+    } catch (error) {
+      console.error('Erro ao pagar nota:', error);
+      notification.error(`Erro ao pagar nota: ${error.message}`);
+    }
+  });
+
 }
 
 module.exports = {

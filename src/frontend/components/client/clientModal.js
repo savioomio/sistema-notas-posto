@@ -52,7 +52,7 @@ async function saveClient(event) {
     // Validar formulário
     const validation = clientForm.validateClientForm();
     if (!validation.valid) {
-      alert(validation.message);
+      notification.warning(validation.message);
       return;
     }
 

@@ -90,7 +90,7 @@ async function openInvoiceModal(invoiceId = null, preselectedClientId = null) {
 
   } catch (error) {
     console.error('Erro ao abrir modal de nota:', error);
-    alert(`Erro ao abrir modal de nota: ${error.message}`);
+    notification.error(`Erro ao abrir modal de nota: ${error.message}`);
   } finally {
     // Liberar o flag após um pequeno delay
     setTimeout(() => {
@@ -306,14 +306,14 @@ async function saveInvoice(event) {
   try {
     // Verificar se tem cliente selecionado
     if (!selectedClient) {
-      alert('Selecione um cliente');
+      notification.warning('Selecione um cliente');
       return;
     }
 
     // Validar formulário
     const validation = invoiceForm.validateInvoiceForm();
     if (!validation.valid) {
-      alert(validation.message);
+      notification.warning(validation.message);
       return;
     }
 
