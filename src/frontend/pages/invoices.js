@@ -3,6 +3,7 @@ const invoiceService = require('../services/invoiceService');
 const { formatDate, formatCurrency, isOverdue } = require('../assets/js/utils');
 const { openInvoiceModal } = require('../components/invoice/invoiceModal');
 const notification = require('../components/notification');
+const confirmation = require('../components/confirmation');
 
 // Armazenar dados para paginação
 let currentPage = 1;
@@ -33,30 +34,30 @@ function showLoading() {
 async function loadInvoices(page = 1) {
   try {
     showLoading();
-    
+
     currentPage = page;
-    
+
     // Enviar filtros e paginação na requisição
     const params = new URLSearchParams({
       page: page.toString(),
       limit: '30',
       ...currentFilters
     });
-    
+
     const response = await invoiceService.getAllInvoices(params);
-    
+
     // Renderizar notas
     renderInvoices(response.data);
-    
+
     // Atualizar informações de paginação
     updatePaginationInfo(response.pagination);
-    
+
     // Renderizar controles de paginação
     renderPaginationControls(response.pagination);
-    
+
     // Atualizar visualmente os filtros selecionados
     highlightSelectedFilters();
-    
+
   } catch (error) {
     console.error('Erro ao carregar notas:', error);
     notification.error('Erro ao carregar notas: ' + error.message);
@@ -69,10 +70,10 @@ function checkActiveFilters() {
   const dueFilter = document.querySelector('input[name="invoice-filter-due"]:checked')?.value || 'all';
   const purchaseFilter = document.querySelector('input[name="invoice-filter-purchase"]:checked')?.value || 'all';
   const statusFilter = document.querySelector('input[name="invoice-filter-status"]:checked')?.value || 'all';
-  
-  const hasActiveFilters = valueFilter !== 'all' || dueFilter !== 'all' || 
-                           purchaseFilter !== 'all' || statusFilter !== 'all';
-  
+
+  const hasActiveFilters = valueFilter !== 'all' || dueFilter !== 'all' ||
+    purchaseFilter !== 'all' || statusFilter !== 'all';
+
   const activeFiltersIndicator = document.getElementById('invoice-active-filters');
   if (activeFiltersIndicator) {
     if (hasActiveFilters) {
@@ -81,7 +82,7 @@ function checkActiveFilters() {
       activeFiltersIndicator.classList.add('hidden');
     }
   }
-  
+
   return hasActiveFilters;
 }
 
@@ -91,7 +92,7 @@ function highlightSelectedFilters() {
   document.querySelectorAll('.filter-option').forEach(label => {
     label.classList.remove('selected');
   });
-  
+
   // Para cada grupo de filtros, destacar o selecionado
   ['value', 'due', 'purchase', 'status'].forEach(filterType => {
     document.querySelectorAll(`[name="invoice-filter-${filterType}"]`).forEach(radio => {
@@ -101,7 +102,7 @@ function highlightSelectedFilters() {
       }
     });
   });
-  
+
   // Verificar se há filtros ativos
   checkActiveFilters();
 }
@@ -113,7 +114,7 @@ function applyFilters() {
   const dueFilter = document.querySelector('input[name="invoice-filter-due"]:checked').value;
   const purchaseFilter = document.querySelector('input[name="invoice-filter-purchase"]:checked').value;
   const statusFilter = document.querySelector('input[name="invoice-filter-status"]:checked').value;
-  
+
   // Atualizar filtros atuais
   currentFilters = {
     status: statusFilter,
@@ -121,10 +122,10 @@ function applyFilters() {
     due: dueFilter,
     purchase: purchaseFilter
   };
-  
+
   // Recarregar da página 1 com novos filtros
   loadInvoices(1);
-  
+
   // Fechar o acordeão após aplicar filtros
   if (document.getElementById('invoice-filters-accordion').open) {
     document.getElementById('invoice-filters-accordion').open = false;
@@ -138,7 +139,7 @@ function clearFilters() {
   document.querySelector('input[name="invoice-filter-due"][value="all"]').checked = true;
   document.querySelector('input[name="invoice-filter-purchase"][value="all"]').checked = true;
   document.querySelector('input[name="invoice-filter-status"][value="all"]').checked = true;
-  
+
   // Atualizar os valores dos filtros atuais
   currentFilters = {
     status: 'all',
@@ -146,10 +147,10 @@ function clearFilters() {
     due: 'all',
     purchase: 'all'
   };
-  
+
   // Atualizar visuais
   highlightSelectedFilters();
-  
+
   // Recarregar da página 1 com filtros padrão
   loadInvoices(1);
 }
@@ -178,11 +179,11 @@ function renderInvoices(invoices) {
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(invoice.total_value)}</td>
         <td class="px-6 py-4 whitespace-nowrap">
           <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-            ${invoice.status === 'paga' 
-              ? 'bg-green-100 text-green-800' 
-              : (isInvoiceOverdue 
-                ? 'bg-red-100 text-red-800' 
-                : 'bg-yellow-100 text-yellow-800')}" ${paymentInfo}>
+            ${invoice.status === 'paga'
+                ? 'bg-green-100 text-green-800'
+                : (isInvoiceOverdue
+                  ? 'bg-red-100 text-red-800'
+                  : 'bg-yellow-100 text-yellow-800')}" ${paymentInfo}>
             ${invoice.status === 'paga' ? 'Paga' : (isInvoiceOverdue ? 'Vencida' : 'Pendente')}
           </span>
         </td>
@@ -190,6 +191,10 @@ function renderInvoices(invoices) {
           <button class="edit-invoice mr-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors" data-id="${invoice.id}">
             Editar
           </button>
+          ${invoice.status !== 'paga' ?
+                `<button class="pay-invoice mr-2 px-3 py-1 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors" data-id="${invoice.id}">
+              Pagar
+            </button>` : ''}
           <button class="delete-invoice px-3 py-1 rounded-full bg-red-100 text-red-700 hover:bg-red-200 transition-colors" data-id="${invoice.id}">
             Excluir
           </button>
@@ -205,28 +210,27 @@ function renderInvoices(invoices) {
 
 // Excluir nota
 async function deleteInvoice(invoiceId) {
-  if (!confirm('Tem certeza que deseja excluir esta nota?')) {
-    return;
-  }
+  // Substituir o confirm nativo por nossa versão personalizada
+  confirmation.danger('Tem certeza que deseja excluir esta nota?', async () => {
+    try {
+      await invoiceService.deleteInvoice(invoiceId);
+      await loadInvoices();
 
-  try {
-    await invoiceService.deleteInvoice(invoiceId);
-    await loadInvoices();
-
-    // Recarregar dashboard se estiver visível
-    if (document.getElementById('dashboard').classList.contains('active')) {
-      const dashboard = require('./dashboard');
-      await dashboard.loadDashboard();
+      // Recarregar dashboard se estiver visível
+      if (document.getElementById('dashboard').classList.contains('active')) {
+        const dashboard = require('./dashboard');
+        await dashboard.loadDashboard();
+      }
+    } catch (error) {
+      console.error('Erro ao excluir nota:', error);
+      notification.error('Erro ao excluir nota: ' + error.message);
     }
-  } catch (error) {
-    console.error('Erro ao excluir nota:', error);
-    notification.error('Erro ao excluir nota: ' + error.message);
-  }
+  });
 }
 
 // Configurar eventos da página de notas
 function setupInvoicesEvents() {
-  // Botões de edição
+  // Botões de edição (código existente)
   document.querySelectorAll('.edit-invoice').forEach(button => {
     button.addEventListener('click', (event) => {
       const invoiceId = event.target.dataset.id;
@@ -234,7 +238,15 @@ function setupInvoicesEvents() {
     });
   });
 
-  // Botões de exclusão
+  // Botões de pagamento (novo)
+  document.querySelectorAll('.pay-invoice').forEach(button => {
+    button.addEventListener('click', (event) => {
+      const invoiceId = event.target.dataset.id;
+      payInvoice(invoiceId);
+    });
+  });
+
+  // Botões de exclusão (código existente)
   document.querySelectorAll('.delete-invoice').forEach(button => {
     button.addEventListener('click', (event) => {
       const invoiceId = event.target.dataset.id;
@@ -242,6 +254,7 @@ function setupInvoicesEvents() {
     });
   });
 }
+
 // Atualizar informação de paginação
 function updatePaginationInfo(pagination) {
   totalPages = pagination.totalPages;
@@ -263,11 +276,10 @@ function generateInvoicePageNumbers(pagination) {
       <button 
         data-action="goto"
         data-page="${i}"
-        class="relative inline-flex items-center px-4 py-2 text-sm font-medium ${
-          isActive 
-            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' 
-            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-        }">
+        class="relative inline-flex items-center px-4 py-2 text-sm font-medium ${isActive
+        ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+      }">
         ${i}
       </button>
     `;
@@ -290,7 +302,7 @@ document.addEventListener('keydown', (e) => {
 function renderPaginationControls(pagination) {
   const container = document.getElementById('invoices-pagination-controls');
   if (!container) return;
-  
+
   container.innerHTML = `
     <div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
       <div class="flex justify-between flex-1 sm:hidden">
@@ -345,29 +357,29 @@ function renderPaginationControls(pagination) {
       </div>
     </div>
   `;
-  
+
   setupInvoicePaginationEvents();
 }
 
 function setupInvoicePaginationEvents() {
   const container = document.getElementById('invoices-pagination-controls');
   if (!container) return;
-  
+
   const oldHandler = container.pagination_handler;
   if (oldHandler) {
     container.removeEventListener('click', oldHandler);
   }
-  
+
   const handler = (e) => {
     const button = e.target.closest('button[data-action]');
     if (!button || button.disabled) return;
-    
+
     const page = parseInt(button.dataset.page);
     if (!isNaN(page)) {
       loadInvoices(page);
     }
   };
-  
+
   container.addEventListener('click', handler);
   container.pagination_handler = handler;
 }
@@ -380,19 +392,19 @@ function setupFilterEvents() {
       highlightSelectedFilters();
     });
   });
-  
+
   // Evento para fechar o acordeão quando clicar fora dele
   document.addEventListener('click', (event) => {
     const filters = document.getElementById('invoice-filters-accordion');
-    const clickedOutside = !filters.contains(event.target) && 
-                           !event.target.closest('#invoice-filter-apply') && 
-                           !event.target.closest('#invoice-filter-clear');
-    
+    const clickedOutside = !filters.contains(event.target) &&
+      !event.target.closest('#invoice-filter-apply') &&
+      !event.target.closest('#invoice-filter-clear');
+
     if (filters.open && clickedOutside) {
       filters.open = false;
     }
   });
-  
+
   // MutationObserver para garantir que os filtros estejam visualmente corretos
   const filters = document.getElementById('invoice-filters-accordion');
   if (filters) {
@@ -407,7 +419,7 @@ function setupFilterEvents() {
         }
       });
     });
-    
+
     observer.observe(filters, { attributes: true });
   }
 }
@@ -418,19 +430,41 @@ function setupInitialInvoicesEvents() {
   document.getElementById('new-invoice-btn').addEventListener('click', () => {
     openInvoiceModal();
   });
-  
+
   // Botão aplicar filtros
   document.getElementById('invoice-filter-apply').addEventListener('click', applyFilters);
-  
+
   // Botão limpar filtros
   document.getElementById('invoice-filter-clear').addEventListener('click', clearFilters);
-  
+
   // Configurar eventos dos filtros
   setupFilterEvents();
-  
+
   // Garantir que os filtros tenham o visual correto ao iniciar
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
     highlightSelectedFilters();
+  }
+}
+
+async function payInvoice(invoiceId) {
+  try {
+    // Substituir o confirm nativo por nossa versão personalizada
+    confirmation.confirm('Deseja marcar esta nota como paga?', async () => {
+      // Código executado quando confirmado
+      await invoiceService.payInvoice(invoiceId);
+
+      // Recarregar notas na página atual
+      await loadInvoices(currentPage);
+
+      // Verificar se o dashboard está visível e recarregá-lo
+      if (document.getElementById('dashboard').classList.contains('active')) {
+        const dashboard = require('./dashboard');
+        await dashboard.loadDashboard();
+      }
+    });
+  } catch (error) {
+    console.error('Erro ao pagar nota:', error);
+    notification.error(`Erro ao pagar nota: ${error.message}`);
   }
 }
 
@@ -440,5 +474,6 @@ module.exports = {
   setupInvoicesEvents,
   setupInitialInvoicesEvents,
   applyFilters,
-  clearFilters
+  clearFilters,
+  payInvoice
 };

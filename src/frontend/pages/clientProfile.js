@@ -4,6 +4,7 @@ const invoiceService = require('../services/invoiceService');
 const { formatDate, formatCurrency, isOverdue } = require('../assets/js/utils');
 const { openInvoiceModal } = require('../components/invoice/invoiceModal');
 const notification = require('../components/notification');
+const confirmation = require('../components/confirmation');
 
 // Variável para armazenar o ID do cliente atual
 let currentClientId = null;
@@ -447,24 +448,27 @@ window.navigateInvoicePage = function (page) {
   loadClientInvoices(currentClientId, page);
 };
 
-// Marcar nota como paga
+// Função para pagar nota no perfil
 async function payInvoice(invoiceId) {
-  try {
-    // Usar o novo endpoint para pagamento
-    await invoiceService.payInvoice(invoiceId);
-
-    // Recarregar notas do cliente na página atual
-    await loadClientInvoices(currentClientId, currentInvoicePage);
-
-    // Verificar se o dashboard está visível e recarregá-lo
-    if (document.getElementById('dashboard').classList.contains('active')) {
-      const dashboard = require('./dashboard');
-      await dashboard.loadDashboard();
+  // IMPORTANTE: Remover o try/catch aqui e colocar dentro do callback
+  confirmation.confirm('Deseja marcar esta nota como paga?', async () => {
+    try {
+      // Código executado quando confirmado
+      await invoiceService.payInvoice(invoiceId);
+      
+      // Recarregar notas do cliente na página atual
+      await loadClientInvoices(currentClientId, currentInvoicePage);
+      
+      // Verificar se o dashboard está visível e recarregá-lo
+      if (document.getElementById('dashboard').classList.contains('active')) {
+        const dashboard = require('./dashboard');
+        await dashboard.loadDashboard();
+      }
+    } catch (error) {
+      console.error('Erro ao pagar nota:', error);
+      notification.error(`Erro ao pagar nota: ${error.message}`);
     }
-  } catch (error) {
-    console.error('Erro ao pagar nota:', error);
-    notification.error(`Erro ao pagar nota: ${error.message}`);
-  }
+  });
 }
 
 // Configurar eventos da página de perfil
@@ -511,9 +515,7 @@ function setupClientProfileEvents() {
     if (!button.disabled) {
       button.addEventListener('click', (event) => {
         const invoiceId = event.target.dataset.id;
-        if (confirm('Deseja marcar esta nota como paga?')) {
-          payInvoice(invoiceId);
-        }
+        payInvoice(invoiceId);
       });
     }
   });

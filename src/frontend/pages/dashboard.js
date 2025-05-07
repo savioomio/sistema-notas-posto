@@ -5,6 +5,7 @@ const { openClientModal } = require('../components/client/clientModal');
 const { openInvoiceModal } = require('../components/invoice/invoiceModal');
 const invoiceService = require('../services/invoiceService');
 const notification = require('../components/notification');
+const confirmation = require('../components/confirmation');
 
 // Estado da paginação
 let overdueClientsPage = 1;
@@ -187,17 +188,19 @@ function renderPendingInvoices(result) {
   setupDashboardEvents();
 }
 
-// Marcar nota como paga
+// Função para pagar nota no dashboard
 async function payInvoice(invoiceId) {
-  try {
-    // Usar o novo endpoint para pagamento
-    await invoiceService.payInvoice(invoiceId);
-    // Recarregar dados
-    await loadDashboard();
-  } catch (error) {
-    console.error('Erro ao pagar nota:', error);
-    notification.error(`Erro ao pagar nota: ${error.message}`);
-  }
+  // IMPORTANTE: Remover o try/catch aqui e colocar dentro do callback
+  confirmation.confirm('Deseja marcar esta nota como paga?', async () => {
+    try {
+      // Código executado quando confirmado
+      await invoiceService.payInvoice(invoiceId);
+      await loadDashboard();
+    } catch (error) {
+      console.error('Erro ao pagar nota:', error);
+      notification.error(`Erro ao pagar nota: ${error.message}`);
+    }
+  });
 }
 
 // Configurar eventos do dashboard
@@ -220,9 +223,7 @@ function setupDashboardEvents() {
   document.querySelectorAll('#pending-invoices .pay-invoice').forEach(button => {
     button.addEventListener('click', (event) => {
       const invoiceId = event.target.dataset.id;
-      if (confirm('Deseja marcar esta nota como paga?')) {
-        payInvoice(invoiceId);
-      }
+      payInvoice(invoiceId);
     });
   });
 }
