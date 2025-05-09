@@ -1,15 +1,24 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="light">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema do Posto</title>
+  <title>GasMaster - Sistema de Gestão</title>
   <link rel="stylesheet" href="./src/frontend/assets/css/output.css">
-  <link rel="stylesheet" href="./src/frontend/assets/css/filters.css">
+  <link rel="stylesheet" href="./src/frontend/assets/css/global.css">
+  <link rel="stylesheet" href="./src/frontend/assets/css/theme.css">
+  <script>
+    // Verificar tema do usuário na inicialização
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
 </head>
 
-<body>
+<body class="bg-light text-dark dark:bg-dark dark:text-light">
   <div class="container m-auto">
     <!-- Login -->
     <div id="login-screen" class="flex items-center justify-center min-h-screen">

@@ -18,6 +18,7 @@ const clientProfile = require('./pages/clientProfile');
 const clientModal = require('./components/client/clientModal');
 const invoiceModal = require('./components/invoice/invoiceModal');
 const notification = require('./components/notification');
+const header = require('./components/layout/header');
 
 // Configurações
 let config = {};
@@ -96,6 +97,9 @@ function showApp(isAuthenticated) {
     // Inicializar WebSocket SOMENTE após login bem-sucedido
     initWebSocket(config);
     
+    // Atualizar visibilidade do cabeçalho
+    header.updateHeaderVisibility(isAuthenticated);
+    
     // Inicialmente mostrar o dashboard
     showTab('dashboard');
   } else {
@@ -103,10 +107,14 @@ function showApp(isAuthenticated) {
     document.getElementById('main-app').classList.add('hidden');
     document.getElementById('password').value = '';
     
+    // Atualizar visibilidade do cabeçalho
+    header.updateHeaderVisibility(isAuthenticated);
+    
     // Desconectar WebSocket se existir
     socketService.disconnect();
   }
 }
+
 // Expor função para mostrar tela de login (para o logout)
 window.showLoginScreen = function() {
   showApp(false);
@@ -226,6 +234,9 @@ async function initApp() {
   try {
     // Carregar configurações
     config = await ipcRenderer.invoke('get-config');
+
+    // Configurar cabeçalho
+    header.setupHeader();
 
     // Configurar URL da API
     if (config.runServer) {

@@ -1,0 +1,117 @@
+/* src/frontend/assets/css/theme.css */
+
+/* Classes personalizadas para as cores do tema */
+.bg-primary {
+  background-color: rgb(var(--color-primary) / 1);
+}
+
+.bg-primary-50 {
+  background-color: rgb(var(--color-primary-50) / 1);
+}
+
+.bg-primary-100 {
+  background-color: rgb(var(--color-primary-100) / 1);
+}
+
+.bg-primary-200 {
+  background-color: rgb(var(--color-primary-200) / 1);
+}
+
+.bg-primary-300 {
+  background-color: rgb(var(--color-primary-300) / 1);
+}
+
+.bg-primary-400 {
+  background-color: rgb(var(--color-primary-400) / 1);
+}
+
+.bg-primary-500 {
+  background-color: rgb(var(--color-primary-500) / 1);
+}
+
+.bg-primary-600 {
+  background-color: rgb(var(--color-primary-600) / 1);
+}
+
+.bg-primary-700 {
+  background-color: rgb(var(--color-primary-700) / 1);
+}
+
+.bg-primary-800 {
+  background-color: rgb(var(--color-primary-800) / 1);
+}
+
+.bg-primary-900 {
+  background-color: rgb(var(--color-primary-900) / 1);
+}
+
+.bg-primary-950 {
+  background-color: rgb(var(--color-primary-950) / 1);
+}
+
+.text-primary {
+  color: rgb(var(--color-primary) / 1);
+}
+
+.bg-light {
+  background-color: rgb(var(--color-light) / 1);
+}
+
+.text-light {
+  color: rgb(var(--color-light) / 1);
+}
+
+.bg-dark {
+  background-color: rgb(var(--color-dark) / 1);
+}
+
+.text-dark {
+  color: rgb(var(--color-dark) / 1);
+}
+
+/* Variante de hover para cor primária */
+.hover\:bg-primary:hover {
+  background-color: rgb(var(--color-primary) / 1);
+}
+
+.hover\:bg-primary-600:hover {
+  background-color: rgb(var(--color-primary-600) / 1);
+}
+
+.hover\:bg-primary-200:hover {
+  background-color: rgb(var(--color-primary-200) / 1);
+}
+
+.hover\:bg-primary-800:hover {
+  background-color: rgb(var(--color-primary-800) / 1);
+}
+
+/* Modo escuro */
+.dark .dark\:bg-light {
+  background-color: rgb(var(--color-light) / 1);
+}
+
+.dark .dark\:text-dark {
+  color: rgb(var(--color-dark) / 1);
+}
+
+.dark .dark\:block {
+  display: block;
+}
+
+.dark .dark\:hidden {
+  display: none;
+}
+
+.nav-item.active,
+.bg-primary {
+  background-color: rgb(var(--color-primary) / 1);
+}
+
+.nav-item.active {
+  color: rgb(var(--color-light) / 1);
+}
+
+.dark .nav-item.active {
+  color: rgb(var(--color-light) / 1) !important;
+}

@@ -1,1 +1,38 @@
 @import "tailwindcss";
+
+
+@layer theme {
+   :root {
+     /* Cores principais */
+     --color-primary: 68 170 18;  /* #44AA12 */
+     --color-light: 247 255 244;  /* #F7FFF4 */
+     --color-dark: 43 57 42;      /* #2B392A */
+     
+     /* Variantes da cor principal (tons mais claros e escuros) */
+     --color-primary-50: 239 250 235;
+     --color-primary-100: 220 246 213;
+     --color-primary-200: 187 235 170;
+     --color-primary-300: 132 217 102;
+     --color-primary-400: 100 194 57;
+     --color-primary-500: 68 170 18;  /* Sua cor principal */
+     --color-primary-600: 54 136 14;
+     --color-primary-700: 45 102 12;
+     --color-primary-800: 39 82 14;
+     --color-primary-900: 34 68 16;
+     --color-primary-950: 16 39 6;
+   }
+ 
+   @media (prefers-color-scheme: dark) {
+     :root {
+       --bg-color: var(--color-dark);
+       --text-color: var(--color-light);
+     }
+   }
+ 
+   @media (prefers-color-scheme: light) {
+     :root {
+       --bg-color: var(--color-light);
+       --text-color: var(--color-dark);
+     }
+   }
+ }
