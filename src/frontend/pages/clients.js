@@ -68,6 +68,9 @@ async function loadClients(page = 1) {
     
     // Atualizar visualmente os filtros selecionados
     highlightSelectedFilters();
+
+    // Verificar estado dos filtros aplicados
+    checkActiveFilters();
     
   } catch (error) {
     console.error('Erro ao carregar clientes:', error);
@@ -233,11 +236,11 @@ function generatePageNumbers(pagination) {
 
 // Verificar se há filtros ativos
 function checkActiveFilters() {
-  const valueFilter = document.querySelector('input[name="client-filter-name"]:checked')?.value || 'none';
-  const typeFilter = document.querySelector('input[name="client-filter-type"]:checked')?.value || 'all';
-  const statusFilter = document.querySelector('input[name="client-filter-status"]:checked')?.value || 'all';
-  
-  const hasActiveFilters = valueFilter !== 'none' || typeFilter !== 'all' || statusFilter !== 'all';
+  // Em vez de ler os radio buttons, usamos o objeto currentFilters
+  const hasActiveFilters = 
+    currentFilters.name !== 'none' || 
+    currentFilters.type !== 'all' || 
+    currentFilters.status !== 'all';
   
   const activeFiltersIndicator = document.getElementById('client-active-filters');
   if (activeFiltersIndicator) {
@@ -296,9 +299,6 @@ function highlightSelectedFilters() {
       }
     }
   });
-  
-  // Verificar se há filtros ativos e atualizar indicador
-  checkActiveFilters();
 }
 
 // Adicionar esta nova função para tratar o clique diretamente no label
@@ -346,8 +346,10 @@ function applyFilters() {
     name: nameFilter
   };
   
+  // Agora verifica se há filtros ativos com base nos filtros aplicados
+  checkActiveFilters();
+
   // Recarregar com filtros atualizados
-  // IMPORTANTE: Manter a busca atual se existir
   loadClients(1);
   
   // Fechar o acordeão após aplicar filtros
@@ -370,11 +372,13 @@ function clearFilters() {
     name: 'none'
   };
   
+  // Verificar indicador
+  checkActiveFilters();
+  
   // Atualizar visuais
   highlightSelectedFilters();
   
   // Recarregar com filtros limpos
-  // IMPORTANTE: Manter a busca atual se existir
   loadClients(1);
 }
 
@@ -389,6 +393,10 @@ function renderClients(clients) {
     clientsTable.appendChild(row);
   } else {
     clients.forEach(client => {
+      // Garanta que o status está usando a propriedade has_overdue correta
+      const statusClass = client.has_overdue ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
+      const statusText = client.has_overdue ? 'Com notas vencidas' : 'Regular';
+
       const row = document.createElement('tr');
       row.className = 'hover:bg-gray-50 transition-colors';
       row.innerHTML = `
@@ -400,8 +408,8 @@ function renderClients(clients) {
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.document}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.phone}</td>
         <td class="px-6 py-4 whitespace-nowrap">
-          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${client.has_overdue ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
-            ${client.has_overdue ? 'Com notas vencidas' : 'Regular'}
+          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+            ${statusText}
           </span>
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

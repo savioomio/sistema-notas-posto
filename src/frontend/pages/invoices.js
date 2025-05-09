@@ -58,6 +58,9 @@ async function loadInvoices(page = 1) {
     // Atualizar visualmente os filtros selecionados
     highlightSelectedFilters();
 
+    // Verificar estado dos filtros aplicados
+    checkActiveFilters();
+
   } catch (error) {
     console.error('Erro ao carregar notas:', error);
     notification.error('Erro ao carregar notas: ' + error.message);
@@ -66,14 +69,13 @@ async function loadInvoices(page = 1) {
 
 // Verificar se há filtros ativos
 function checkActiveFilters() {
-  const valueFilter = document.querySelector('input[name="invoice-filter-value"]:checked')?.value || 'all';
-  const dueFilter = document.querySelector('input[name="invoice-filter-due"]:checked')?.value || 'all';
-  const purchaseFilter = document.querySelector('input[name="invoice-filter-purchase"]:checked')?.value || 'all';
-  const statusFilter = document.querySelector('input[name="invoice-filter-status"]:checked')?.value || 'all';
-
-  const hasActiveFilters = valueFilter !== 'all' || dueFilter !== 'all' ||
-    purchaseFilter !== 'all' || statusFilter !== 'all';
-
+  // Em vez de ler os radio buttons, usamos o objeto currentFilters
+  const hasActiveFilters = 
+    currentFilters.value !== 'all' || 
+    currentFilters.due !== 'all' ||
+    currentFilters.purchase !== 'all' || 
+    currentFilters.status !== 'all';
+  
   const activeFiltersIndicator = document.getElementById('invoice-active-filters');
   if (activeFiltersIndicator) {
     if (hasActiveFilters) {
@@ -82,7 +84,7 @@ function checkActiveFilters() {
       activeFiltersIndicator.classList.add('hidden');
     }
   }
-
+  
   return hasActiveFilters;
 }
 
@@ -102,9 +104,6 @@ function highlightSelectedFilters() {
       }
     });
   });
-
-  // Verificar se há filtros ativos
-  checkActiveFilters();
 }
 
 // Aplicar filtros e renderizar notas
@@ -122,6 +121,9 @@ function applyFilters() {
     due: dueFilter,
     purchase: purchaseFilter
   };
+
+  // Verificar e atualizar o indicador
+  checkActiveFilters();
 
   // Recarregar da página 1 com novos filtros
   loadInvoices(1);
@@ -148,6 +150,9 @@ function clearFilters() {
     purchase: 'all'
   };
 
+  // Verificar indicador
+  checkActiveFilters();
+
   // Atualizar visuais
   highlightSelectedFilters();
 
@@ -166,9 +171,30 @@ function renderInvoices(invoices) {
     invoicesTable.appendChild(row);
   } else {
     invoices.forEach(invoice => {
-      const isInvoiceOverdue = invoice.status === 'pendente' && isOverdue(invoice.due_date);
-      // Adicionar tooltip para mostrar data de pagamento
-      const paymentInfo = invoice.payment_date ? `data-tooltip="Pago em: ${formatDate(invoice.payment_date)}"` : '';
+      let statusClass = '';
+      let statusText = '';
+      let paymentInfo = '';
+      
+      // Verificar status da nota
+      if (invoice.status === 'paga') {
+        // Se a nota está paga, usar status "Paga" independente da data
+        statusClass = 'bg-green-100 text-green-800';
+        statusText = 'Paga';
+        // Adicionar tooltip para mostrar data de pagamento
+        if (invoice.payment_date) {
+          paymentInfo = `data-tooltip="Pago em: ${formatDate(invoice.payment_date)}"`;
+        }
+      } else if (invoice.status === 'pendente') {
+        // Se a nota está pendente, verificar se está vencida
+        const isInvoiceOverdue = isOverdue(invoice.due_date);
+        if (isInvoiceOverdue) {
+          statusClass = 'bg-red-100 text-red-800';
+          statusText = 'Vencida';
+        } else {
+          statusClass = 'bg-yellow-100 text-yellow-800';
+          statusText = 'Pendente';
+        }
+      }
 
       const row = document.createElement('tr');
       row.className = 'hover:bg-gray-50 transition-colors';
@@ -178,13 +204,8 @@ function renderInvoices(invoices) {
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(invoice.due_date)}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(invoice.total_value)}</td>
         <td class="px-6 py-4 whitespace-nowrap">
-          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-            ${invoice.status === 'paga'
-          ? 'bg-green-100 text-green-800'
-          : (isInvoiceOverdue
-            ? 'bg-red-100 text-red-800'
-            : 'bg-yellow-100 text-yellow-800')}" ${paymentInfo}>
-            ${invoice.status === 'paga' ? 'Paga' : (isInvoiceOverdue ? 'Vencida' : 'Pendente')}
+          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}" ${paymentInfo}>
+            ${statusText}
           </span>
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
