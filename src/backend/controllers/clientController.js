@@ -18,11 +18,15 @@ function getAllClients(req, res) {
     const total = ClientModel.getClientCount(filters);
     const totalPages = Math.ceil(total / limit);
     
-    // Adicionar flag de notas vencidas para cada cliente
+    // Obter todos os IDs de clientes com notas vencidas em UMA única operação
+    const overdueClientIds = ClientModel.getClientsWithOverdueInvoices()
+                                       .map(client => client.id);
+    
+    // Adicionar flag de notas vencidas para cada cliente usando o conjunto de IDs
     const clientsWithStatus = clients.map(client => {
       return {
         ...client,
-        has_overdue: ClientModel.clientHasOverdueInvoices(client.id)
+        has_overdue: overdueClientIds.includes(client.id)
       };
     });
     
@@ -185,7 +189,15 @@ function searchClientsWithFilters(req, res) {
     };
     
     // Buscar clientes (já faz a busca sem acentos internamente)
-    let clients = ClientModel.searchClients(query, 1000); // Buscar mais para depois filtrar
+    let clients = ClientModel.searchClients(query, 100); // Buscar mais para depois filtrar
+    
+    // Adicionar flag has_overdue para CADA cliente
+    clients = clients.map(client => {
+      return {
+        ...client,
+        has_overdue: ClientModel.clientHasOverdueInvoices(client.id)
+      };
+    });
     
     // Aplicar filtros adicionais
     let filteredClients = clients;
@@ -195,11 +207,7 @@ function searchClientsWithFilters(req, res) {
     }
     
     if (filters.status !== 'all') {
-      filteredClients = filteredClients.map(client => {
-        client.has_overdue = ClientModel.clientHasOverdueInvoices(client.id);
-        return client;
-      });
-      
+      // Agora podemos usar o has_overdue já calculado, sem recalcular
       if (filters.status === 'overdue') {
         filteredClients = filteredClients.filter(client => client.has_overdue);
       } else if (filters.status === 'regular') {

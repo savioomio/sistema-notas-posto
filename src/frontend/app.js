@@ -36,20 +36,14 @@ function showTab(tabId) {
   // Remover classe active de todas as abas
   document.querySelectorAll('.tab').forEach(tab => {
     tab.classList.remove('active');
-    // Remover estilo ativo
-    const tabLink = tab.querySelector('a');
-    tabLink.classList.remove('border-blue-500', 'text-blue-600');
-    tabLink.classList.add('border-transparent');
   });
 
   // Adicionar classe active na aba selecionada
   const activeTab = document.querySelector(`.tab[data-tab="${tabId}"]`);
   activeTab.classList.add('active');
   
-  // Adicionar estilo ativo
-  const activeTabLink = activeTab.querySelector('a');
-  activeTabLink.classList.remove('border-transparent');
-  activeTabLink.classList.add('border-blue-500', 'text-blue-600');
+  // Atualizar a tab ativa no header
+  header.updateActiveTab(tabId);
 
   // Esconder todos os conteúdos
   document.querySelectorAll('.tab-content').forEach(content => {

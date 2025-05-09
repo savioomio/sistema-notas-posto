@@ -53,6 +53,10 @@
   color: rgb(var(--color-primary) / 1);
 }
 
+.border-primary {
+  border-color: rgb(var(--color-primary) / 1);
+}
+
 .bg-light {
   background-color: rgb(var(--color-light) / 1);
 }
@@ -69,6 +73,15 @@
   color: rgb(var(--color-dark) / 1);
 }
 
+/* Variantes com opacidade para hover e efeitos */
+.bg-primary-700\/10 {
+  background-color: rgb(var(--color-primary-700) / 0.1);
+}
+
+.bg-primary-700\/20 {
+  background-color: rgb(var(--color-primary-700) / 0.2);
+}
+
 /* Variante de hover para cor primária */
 .hover\:bg-primary:hover {
   background-color: rgb(var(--color-primary) / 1);
@@ -78,12 +91,12 @@
   background-color: rgb(var(--color-primary-600) / 1);
 }
 
-.hover\:bg-primary-200:hover {
-  background-color: rgb(var(--color-primary-200) / 1);
+.hover\:bg-primary-700\/10:hover {
+  background-color: rgb(var(--color-primary-700) / 0.1);
 }
 
-.hover\:bg-primary-800:hover {
-  background-color: rgb(var(--color-primary-800) / 1);
+.hover\:bg-primary-700\/20:hover {
+  background-color: rgb(var(--color-primary-700) / 0.2);
 }
 
 /* Modo escuro */
@@ -95,23 +108,28 @@
   color: rgb(var(--color-dark) / 1);
 }
 
-.dark .dark\:block {
-  display: block;
+.dark .dark\:bg-dark {
+  background-color: rgb(var(--color-dark) / 1);
 }
 
-.dark .dark\:hidden {
-  display: none;
+.dark .dark\:text-light {
+  color: rgb(var(--color-light) / 1);
 }
 
+/* Classes para elementos ativos */
 .nav-item.active,
 .bg-primary {
   background-color: rgb(var(--color-primary) / 1);
 }
 
-.nav-item.active {
-  color: rgb(var(--color-light) / 1);
+.active-tab {
+  border-color: rgb(var(--color-primary) / 1);
+  background-color: rgb(var(--color-primary-700) / 0.1);
 }
 
-.dark .nav-item.active {
-  color: rgb(var(--color-light) / 1) !important;
+/* Transições suaves */
+.transition-colors {
+  transition-property: color, background-color, border-color;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-in-out;
 }

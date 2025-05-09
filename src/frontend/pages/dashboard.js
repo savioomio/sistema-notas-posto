@@ -149,9 +149,30 @@ function renderPendingInvoices(result) {
     pendingInvoicesTable.appendChild(row);
   } else {
     result.data.forEach(invoice => {
-      const isInvoiceOverdue = isOverdue(invoice.due_date);
-      // Adicionar tooltip para mostrar data de pagamento
-      const paymentInfo = invoice.payment_date ? `data-tooltip="Pago em: ${formatDate(invoice.payment_date)}"` : '';
+      // Definir variáveis com valores padrão
+      let statusClass = 'bg-yellow-100 text-yellow-800'; // valor padrão
+      let statusText = 'Pendente';
+      let paymentInfo = '';
+      
+      if (invoice.status === 'paga') {
+        // Se a nota está paga, usar status "Paga" independente da data
+        statusClass = 'bg-green-100 text-green-800';
+        statusText = 'Paga';
+        // Adicionar tooltip para mostrar data de pagamento
+        if (invoice.payment_date) {
+          paymentInfo = `data-tooltip="Pago em: ${formatDate(invoice.payment_date)}"`;
+        }
+      } else if (invoice.status === 'pendente') {
+        // Se a nota está pendente, verificar se está vencida
+        const isInvoiceOverdue = isOverdue(invoice.due_date);
+        if (isInvoiceOverdue) {
+          statusClass = 'bg-red-100 text-red-800';
+          statusText = 'Vencida';
+        } else {
+          statusClass = 'bg-yellow-100 text-yellow-800';
+          statusText = 'Pendente';
+        }
+      }
       
       const row = document.createElement('tr');
       row.className = 'hover:bg-gray-50 transition-colors';
@@ -160,20 +181,18 @@ function renderPendingInvoices(result) {
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(invoice.due_date)}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(invoice.total_value)}</td>
         <td class="px-6 py-4 whitespace-nowrap">
-          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-            ${isInvoiceOverdue
-          ? 'bg-red-100 text-red-800'
-          : 'bg-yellow-100 text-yellow-800'}" ${paymentInfo}>
-            ${isInvoiceOverdue ? 'Vencida' : 'Pendente'}
+          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}" ${paymentInfo}>
+            ${statusText}
           </span>
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
           <button class="view-invoice mr-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors" data-id="${invoice.id}">
             Ver
           </button>
-          <button class="pay-invoice px-3 py-1 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors" data-id="${invoice.id}">
-            Pagar
-          </button>
+          ${invoice.status !== 'paga' ? 
+            `<button class="pay-invoice px-3 py-1 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors" data-id="${invoice.id}">
+              Pagar
+            </button>` : ''}
         </td>
       `;
       pendingInvoicesTable.appendChild(row);

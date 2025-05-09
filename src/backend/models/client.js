@@ -17,6 +17,18 @@ function clientHasOverdueInvoices(clientId) {
   return result.count > 0;
 }
 
+// Obter todos os clientes com notas vencidas em uma única consulta
+function getClientsWithOverdueInvoices() {
+  const today = new Date().toISOString().split('T')[0];
+  
+  return db.prepare(`
+    SELECT DISTINCT c.id
+    FROM clients c
+    INNER JOIN invoices i ON c.id = i.client_id
+    WHERE i.status = 'pendente' AND i.due_date < ?
+  `).all(today);
+}
+
 // Função para contar clientes com filtros
 function getClientCount(filters = {}) {
   let sql = 'SELECT COUNT(*) as count FROM clients WHERE 1=1';
@@ -202,5 +214,6 @@ module.exports = {
   clientHasOverdueInvoices,
   getClientCount,
   searchClients,
-  getClientStatistics
+  getClientStatistics,
+  getClientsWithOverdueInvoices
 };
